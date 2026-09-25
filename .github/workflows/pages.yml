@@ -5,8 +5,7 @@ on:
     branches: [main]
     paths:
       - 'website/**'
-      - 'quickapp/velamotion_coach/src/common/algorithm/**'
-      - 'quickapp/velamotion_coach/src/common/sensor/mock_scenarios.js'
+      - 'quickapp/velamotion_coach/src/**'
       - 'docs/images/**'
       - 'LICENSE'
       - '.github/workflows/pages.yml'

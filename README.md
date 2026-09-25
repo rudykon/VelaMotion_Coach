@@ -8,9 +8,13 @@
 
 腕动教练以“小芽”运动伙伴组织开始、查看、停止与复盘，在立创·黄山派 SF32LB52 上集成 openvela/NuttX、原生手表桌面和 QuickApp。面向跑步、跳绳等交替进行的混合训练，用活动初筛与时间线展示各阶段的状态和持续时间。
 
-**[在线体验 · WebAssembly 演示](https://rudykon.github.io/VelaMotion_Coach/)** · **[下载黄山派固件](https://github.com/rudykon/VelaMotion_Coach/releases/tag/huangshan-20260923)** · **[部署与构建指南](board/huangshan_openvela/README.md)** · **[应用源码](quickapp/velamotion_coach/src)**
+**[在线体验 · 快应用页面与 WASM](https://rudykon.github.io/VelaMotion_Coach/)** · **[下载黄山派固件](https://github.com/rudykon/VelaMotion_Coach/releases/tag/huangshan-20260923)** · **[部署与构建指南](board/huangshan_openvela/README.md)** · **[应用源码](quickapp/velamotion_coach/src)**
 
 ## 浏览器在线演示
+
+**[快应用实时预览](https://rudykon.github.io/VelaMotion_Coach/preview/)** 直接从当前 `.ux` 提取模板、样式和页面脚本，复用原始训练、手势、时间线与历史逻辑。可点击开始／停止、左右滑动翻页、选择演示场景、生成本地建议；活动评分通过原项目后端接口调用 WASM。所有计算发生在访客浏览器，无需模拟器服务器。
+
+这是**项目源码的浏览器兼容预览**，没有运行完整 openvela 系统或 RPK，字体与布局细节可能与实板不同。设备传感器、手机互联和在线 AI 服务不可用；使用合成输入与本地规则建议。预览历史仅存在当前页面内存，刷新后清空，离开页面时结束训练。
 
 **[打开作品展示页](https://rudykon.github.io/VelaMotion_Coach/)**，选择混合训练或单项活动，即可查看六轴波形、六类候选评分、训练片段和当前浏览器的计算耗时。支持暂停、4× 快览和本地导出结果。
 

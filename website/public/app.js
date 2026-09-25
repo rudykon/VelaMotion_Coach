@@ -162,7 +162,9 @@ function boot() {
 }
 
 $('start').addEventListener('click', toggle); $('watch-start').addEventListener('click', toggle);
-$('hero-start').addEventListener('click', () => { if (ready && state !== 'running') toggle(); });
+$('launch-preview').addEventListener('click', () => {
+  const frame = $('quickapp-frame'); frame.src = frame.dataset.src; frame.hidden = false; $('quickapp-launch').hidden = true;
+});
 $('reset').addEventListener('click', reset); $('scenario').addEventListener('change', reset);
 $('speed').addEventListener('change', () => send('speed', { speed: Number($('speed').value) }));
 $('benchmark').addEventListener('click', () => { benchmarkBusy = true; controls(); send('benchmark'); });
@@ -173,3 +175,10 @@ addEventListener('pagehide', () => { if (state === 'running') send('pause'); });
 if (typeof ResizeObserver !== 'undefined') new ResizeObserver(queueDraw).observe($('signal-canvas').parentElement);
 else addEventListener('resize', queueDraw);
 boot();
+
+window.addEventListener('message', event => {
+  const frame = $('quickapp-frame');
+  if (event.origin !== location.origin || event.source !== frame.contentWindow || event.data?.type !== 'velamotion-preview-size') return;
+  const height = Number(event.data.height);
+  if (Number.isFinite(height) && height >= 400 && height <= 5000) frame.style.height = `${height + 4}px`;
+});

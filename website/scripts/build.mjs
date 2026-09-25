@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import asc from 'assemblyscript/asc';
+import { buildPreview } from './build-preview.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const repo=path.resolve(root,'..');
@@ -24,3 +25,5 @@ for(const name of ['config.js','imu_features.js','tiny_classifier.js'])sourceHas
 const binary=await fs.readFile(path.join(root,'dist/wasm/classifier.wasm'));
 await fs.writeFile(path.join(root,'dist/build-info.json'),JSON.stringify({wasmBytes:binary.length,sha256:createHash('sha256').update(binary).digest('hex'),algorithmBaseline:'repository-source-snapshot',algorithmSourceSha256:sourceHash.digest('hex'),engine:'AssemblyScript 0.28.20',input:'synthetic demo only'},null,2)+'\n');
 console.log(`Built static website. WASM: ${binary.length} bytes.`);
+
+await buildPreview(root, repo);

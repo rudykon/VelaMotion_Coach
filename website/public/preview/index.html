@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f7f8f2">
+  <meta name="description" content="直接复用腕动教练 UX 页面与业务逻辑的实时浏览器预览，WASM 本地计算，无需服务器。">
+  <title>小芽 · 快应用实时预览 — 腕动教练</title>
+  <link rel="icon" href="../favicon.svg"><link rel="stylesheet" href="./preview.css">
+</head>
+<body>
+  <header class="preview-header"><a href="../" target="_top">↖ 腕动教练</a><span>QUICKAPP SOURCE PREVIEW</span><a href="../#demo" target="_top">WASM 算法实验室 ↗</a></header>
+  <main class="preview-layout">
+    <section class="watch-panel" aria-label="快应用交互界面">
+      <div class="watch-holder" id="watch-holder"><div id="watch-sizer"><div id="quickapp"></div>
+        <div class="screen-overlay" id="loading" role="status">正在启动小芽…</div>
+        <div class="screen-overlay" id="preview-error" role="alert" hidden><p id="preview-error-text"></p><button id="preview-retry">重新加载</button></div>
+        <div class="screen-overlay" id="preview-exit" hidden><b>小芽仍在这里</b><p>已返回浏览器预览入口</p><button id="preview-resume">继续体验</button></div>
+      </div></div>
+      <div class="watch-caption"><span class="status-dot"></span><span id="preview-status" role="status">正在加载页面与 WASM</span></div>
+      <nav class="page-nav" aria-label="快应用页面"><button data-page="0" disabled>首页</button><button data-page="1" disabled>初筛</button><button data-page="2" disabled>时间线</button><button data-page="3" disabled>复盘</button></nav>
+    </section>
+    <aside class="preview-guide">
+      <p class="eyebrow">小芽 · 实时体验</p><h1>点一下，<br>开始这一段运动。</h1>
+      <p class="intro">这里运行项目原有的页面与训练逻辑。点击屏幕上的“开始”，左右滑动，看看活动如何变成一段训练记录。</p>
+      <div class="state-card"><div><span>当前页面</span><b id="current-page">首页</b></div><div><span>演示场景</span><b id="preview-scene">混合训练</b></div><div><span>训练状态</span><b id="preview-stage">准备中</b></div><div><span>训练时长</span><b id="preview-elapsed">0:00</b></div><div><span>WASM 累计调用</span><b id="preview-calls">0</b></div><div><span>最近一次计算</span><b id="preview-time">等待训练</b></div></div>
+      <ol class="steps"><li>点击“开始”，积累运动窗口。</li><li>左右滑动查看初筛与时间线；停止时可在“初筛 → 场景”切换活动。</li><li>停止训练后，在“复盘 → 历史”查看记录。记录仅留在当前页面，刷新后清空。</li></ol>
+      <button class="back-button" id="preview-back" disabled>← 应用上一页</button>
+      <p class="boundary">源码兼容预览，未运行完整 openvela 系统或 RPK。布局由浏览器绘制，字体和细节可能与板端不同。六轴与心率使用合成数据，手机互联与设备传感器不可用；复盘建议使用项目本地规则。</p>
+      <details><summary>查看运行说明</summary><p>构建时直接提取原始 .ux 的模板、样式与脚本，通过浏览器适配层执行；特征和活动评分接入 WebAssembly，时序整理与页面状态复用原业务模块。无需后台服务，离开页面时会结束当前训练。</p><p>UX 来源校验：<code id="source-hash">加载中</code> · <a href="https://github.com/rudykon/VelaMotion_Coach/blob/main/quickapp/velamotion_coach/src/pages/index/index.ux" target="_blank" rel="noopener">查看源文件 ↗</a></p></details>
+    </aside>
+  </main>
+  <noscript>实时预览需要 JavaScript 和 WebAssembly。</noscript>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
