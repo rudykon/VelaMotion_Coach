@@ -1,0 +1,30 @@
+node_modules/
+build/
+.temp_*/
+com.velamotion.coach/
+npm-debug.log*
+*.log
+.DS_Store
+
+# Keep release RPK, but ignore transient unpack/build outputs.
+artifacts/mock_verification/*
+!artifacts/mock_verification/official_mock_report.json
+!artifacts/mock_verification/mock_verification_report.md
+
+artifacts/final_demo/*
+!artifacts/final_demo/auto_carousel/
+!artifacts/final_demo/auto_carousel/*.png
+!artifacts/final_demo/auto_carousel/*.mp4
+!artifacts/final_demo/auto_carousel/*.md
+!artifacts/final_demo/auto_carousel/*.ffconcat
+
+artifacts/model_migration/*
+!artifacts/model_migration/model_asset_report.json
+
+artifacts/submission/*
+!artifacts/submission/submission_check_report.json
+!artifacts/submission/velamotion_submission_manifest.json
+!artifacts/submission/velamotion_coach_submission.zip
+
+# Do not submit generated private signing key.
+sign/release/*.pem

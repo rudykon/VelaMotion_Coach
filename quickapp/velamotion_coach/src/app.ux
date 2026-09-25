@@ -1,0 +1,10 @@
+<script>
+export default {
+  onCreate() {
+    console.log('VelaMotion Coach app created');
+  },
+  onDestroy() {
+    console.log('VelaMotion Coach app destroyed');
+  },
+};
+</script>

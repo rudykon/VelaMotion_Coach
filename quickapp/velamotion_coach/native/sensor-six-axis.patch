@@ -1,0 +1,224 @@
+--- a/modules/jidl/sensor.jidl
++++ b/modules/jidl/sensor.jidl
+@@ -19,9 +19,10 @@
+ callback fail_cb(string data, int code)
+ 
+ struct AccelerometerRet {
+-    int x
+-    int y
+-    int z
++    double x
++    double y
++    double z
++    double timestampMs
+ }
+ callback accelerometer_cb(AccelerometerRet ret)
+ struct Accelerometer {
+@@ -32,6 +33,23 @@
+ }
+ void subscribeAccelerometer(Accelerometer param)
+ void unsubscribeAccelerometer()
++
++// VelaMotion extension: SI angular velocity and monotonic uORB time.
++struct GyroscopeRet {
++    double x
++    double y
++    double z
++    double timestampMs
++}
++callback gyroscope_cb(GyroscopeRet ret)
++struct Gyroscope {
++    boolean reserved = false
++    string interval = "normal"
++    callback gyroscope_cb callback
++    callback fail_cb fail
++}
++void subscribeGyroscope(Gyroscope param)
++void unsubscribeGyroscope()
+ 
+ struct CompassRet {
+     double direction
+--- a/modules/sensor_impl.cpp
++++ b/modules/sensor_impl.cpp
+@@ -19,6 +19,7 @@
+ #include <nuttx/nuttx.h>
+ #include <sensor/accel.h>
+ #include <sensor/baro.h>
++#include <sensor/gyro.h>
+ #include <sensor/compass.h>
+ #include <sensor/gnss.h>
+ #include <sensor/humi.h>
+@@ -71,6 +72,7 @@
+     SENSOR_MAGIC_GNSS = 0,
+     SENSOR_MAGIC_BARO,
+     SENSOR_MAGIC_ACCEL,
++    SENSOR_MAGIC_GYRO,
+     SENSOR_MAGIC_COMPA,
+     SENSOR_MAGIC_PROX,
+     SENSOR_MAGIC_LIGHT,
+@@ -125,15 +127,52 @@
+         return;
+     }
+     sensor_event_t* event = container_of(topic, sensor_event_t, topic);
++    if (status < 0 || datalen % sizeof(sensor_accel) != 0) {
++        INVOKE_FAIL_CB(event->meta.instance, event->meta.fail, "invalid six-axis sample", IOERROR);
++        return;
++    }
+     int cnt = datalen / sizeof(sensor_accel);
+     for (int i = 0; i < cnt; i++) {
+         sensor_accel* t_r = (sensor_accel*)data + i;
+         system_sensor_AccelerometerRet* accelRet = system_sensorMallocAccelerometerRet();
++        if (!accelRet) {
++            INVOKE_FAIL_CB(event->meta.instance, event->meta.fail, "six-axis allocation failed", GENERAL);
++            return;
++        }
+         accelRet->x = t_r->x;
+         accelRet->y = t_r->y;
+         accelRet->z = t_r->z;
++        accelRet->timestampMs = static_cast<double>(t_r->timestamp) / 1000.0;
+         INVOKE_SUCCESS_CB(event->meta.instance, event->meta.callback, accelRet);
+         FeatureFreeValue(accelRet);
++    }
++}
++
++static void sensor_gyro_topic_cb(uv_topic_t* topic, int status, void* data, size_t datalen)
++{
++    if (!topic || !data) {
++        FEATURE_LOG_ERROR("%s Invalid arguments", __FUNCTION__);
++        return;
++    }
++    sensor_event_t* event = container_of(topic, sensor_event_t, topic);
++    if (status < 0 || datalen % sizeof(sensor_gyro) != 0) {
++        INVOKE_FAIL_CB(event->meta.instance, event->meta.fail, "invalid six-axis sample", IOERROR);
++        return;
++    }
++    int cnt = datalen / sizeof(sensor_gyro);
++    for (int i = 0; i < cnt; i++) {
++        sensor_gyro* t_r = (sensor_gyro*)data + i;
++        system_sensor_GyroscopeRet* gyroRet = system_sensorMallocGyroscopeRet();
++        if (!gyroRet) {
++            INVOKE_FAIL_CB(event->meta.instance, event->meta.fail, "six-axis allocation failed", GENERAL);
++            return;
++        }
++        gyroRet->x = t_r->x;
++        gyroRet->y = t_r->y;
++        gyroRet->z = t_r->z;
++        gyroRet->timestampMs = static_cast<double>(t_r->timestamp) / 1000.0;
++        INVOKE_SUCCESS_CB(event->meta.instance, event->meta.callback, gyroRet);
++        FeatureFreeValue(gyroRet);
+     }
+ }
+ 
+@@ -262,6 +301,7 @@
+         .meta = ORB_ID(sensor_accel),
+         .topic_cb = sensor_accel_topic_cb,
+     },
++    [SENSOR_MAGIC_GYRO] = { .index = 32, .sensor_name = "GYROSCOPE", .meta = ORB_ID(sensor_gyro), .topic_cb = sensor_gyro_topic_cb },
+     [SENSOR_MAGIC_COMPA] = { .index = 3, .sensor_name = "COMPASS", .meta = ORB_ID(sensor_compass), .topic_cb = sensor_compass_topic_cb },
+     [SENSOR_MAGIC_PROX] = { .index = 4, .sensor_name = "PROXIMITY", .meta = ORB_ID(sensor_prox), .topic_cb = sensor_prox_topic_cb },
+     [SENSOR_MAGIC_LIGHT] = { .index = 5, .sensor_name = "LIGHT", .meta = ORB_ID(sensor_light), .topic_cb = sensor_light_topic_cb },
+@@ -393,10 +433,12 @@
+     } else {
+         FEATURE_LOG_ERROR("%s::%s() param interval is invalid:%s\n", file_tag, __FUNCTION__,
+             param->interval);
+-        return;
+-    }
+-
+-    MetaData meta;
++        INVOKE_FAIL_CB(feature, param->fail, "invalid accelerometer interval", ARGSERROR);
++        REMOVE_ALL_CALLBACK(param->callback, param->fail);
++        return;
++    }
++
++    MetaData meta = {};
+     meta.instance = feature;
+     meta.reserved = param->reserved;
+     meta.callback = param->callback;
+@@ -405,16 +447,64 @@
+     if (subscribe(feature, th, SENSOR_MAGIC_ACCEL, &meta)) {
+         int ret = uv_topic_set_interval(&th->events[SENSOR_MAGIC_ACCEL]->topic, interval);
+         if (ret < 0) {
+-            FEATURE_LOG_ERROR("%s::%s() set interval error:%d\n", file_tag, __FUNCTION__, ret);
++            INVOKE_FAIL_CB(feature, param->fail, "accelerometer interval failed", IOERROR);
++            unsubscribe(feature, SENSOR_MAGIC_ACCEL, false);
+         }
+     } else {
+-        FEATURE_LOG_ERROR("%s::%s() accel subscibe fail:%s\n", file_tag, __FUNCTION__);
++        FEATURE_LOG_ERROR("%s::%s() accel subscribe failed\n", file_tag, __FUNCTION__);
+     }
+ }
+ 
+ void system_sensor_wrap_unsubscribeAccelerometer(FeatureInstanceHandle feature, AppendData data)
+ {
+     unsubscribe(feature, SENSOR_MAGIC_ACCEL, false);
++}
++
++void system_sensor_wrap_subscribeGyroscope(FeatureInstanceHandle feature, AppendData data,
++    system_sensor_Gyroscope* param)
++{
++    FeatureProtoHandle proto_handle = FeatureGetProtoHandle(feature);
++    SensorContext* th = static_cast<SensorContext*>(FeatureGetProtoData(proto_handle));
++    if (th == NULL) {
++        FEATURE_LOG_ERROR("%s::%s() sensor context is NULL\n", file_tag, __FUNCTION__);
++        return;
++    }
++
++    int interval = 0;
++    if (strcmp(param->interval, "game") == 0) {
++        interval = 20000;
++    } else if (strcmp(param->interval, "ui") == 0) {
++        interval = 50000;
++    } else if (strcmp(param->interval, "normal") == 0) {
++        interval = 200000;
++    } else {
++        FEATURE_LOG_ERROR("%s::%s() param interval is invalid:%s\n", file_tag, __FUNCTION__,
++            param->interval);
++        INVOKE_FAIL_CB(feature, param->fail, "invalid gyroscope interval", ARGSERROR);
++        REMOVE_ALL_CALLBACK(param->callback, param->fail);
++        return;
++    }
++
++    MetaData meta = {};
++    meta.instance = feature;
++    meta.reserved = param->reserved;
++    meta.callback = param->callback;
++    meta.fail = param->fail;
++
++    if (subscribe(feature, th, SENSOR_MAGIC_GYRO, &meta)) {
++        int ret = uv_topic_set_interval(&th->events[SENSOR_MAGIC_GYRO]->topic, interval);
++        if (ret < 0) {
++            INVOKE_FAIL_CB(feature, param->fail, "gyroscope interval failed", IOERROR);
++            unsubscribe(feature, SENSOR_MAGIC_GYRO, false);
++        }
++    } else {
++        FEATURE_LOG_ERROR("%s::%s() gyro subscribe failed\n", file_tag, __FUNCTION__);
++    }
++}
++
++void system_sensor_wrap_unsubscribeGyroscope(FeatureInstanceHandle feature, AppendData data)
++{
++    unsubscribe(feature, SENSOR_MAGIC_GYRO, false);
+ }
+ 
+ void system_sensor_wrap_subscribeCompass(FeatureInstanceHandle feature, AppendData data,
+@@ -671,7 +761,20 @@
+         ft_obj_set_property(ft_ctx, ret_obj, "x", ret_x);
+         ft_obj_set_property(ft_ctx, ret_obj, "y", ret_y);
+         ft_obj_set_property(ft_ctx, ret_obj, "z", ret_z);
++        ft_obj_set_property(ft_ctx, ret_obj, "timestampMs", ft_from_double(ft_ctx, static_cast<double>(ret_t->timestamp) / 1000.0));
+         ft_obj_set_property(ft_ctx, sensor_obj, "ACCELEROMETER", ret_obj);
++        break;
++    }
++    case SENSOR_MAGIC_GYRO: {
++        sensor_gyro* ret_t = static_cast<sensor_gyro*>(data);
++        ft_value_t ret_x = ft_from_double(ft_ctx, round(ret_t->x * PRECISION) / PRECISION);
++        ft_value_t ret_y = ft_from_double(ft_ctx, round(ret_t->y * PRECISION) / PRECISION);
++        ft_value_t ret_z = ft_from_double(ft_ctx, round(ret_t->z * PRECISION) / PRECISION);
++        ft_obj_set_property(ft_ctx, ret_obj, "x", ret_x);
++        ft_obj_set_property(ft_ctx, ret_obj, "y", ret_y);
++        ft_obj_set_property(ft_ctx, ret_obj, "z", ret_z);
++        ft_obj_set_property(ft_ctx, ret_obj, "timestampMs", ft_from_double(ft_ctx, static_cast<double>(ret_t->timestamp) / 1000.0));
++        ft_obj_set_property(ft_ctx, sensor_obj, "GYROSCOPE", ret_obj);
+         break;
+     }
+     case SENSOR_MAGIC_PROX: {

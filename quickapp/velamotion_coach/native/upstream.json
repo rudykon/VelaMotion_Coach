@@ -1,0 +1,9 @@
+{
+  "repository": "https://github.com/open-vela/frameworks_runtimes_feature",
+  "branch": "dev-ai-contest-2026",
+  "commit": "fa5e43636ed38e9cefdca37d91cd655902b6cefa",
+  "files": {
+    "modules/jidl/sensor.jidl": "22bf184e48084d6faf9b6843cd984e40cd7829e73e73b58bed5383c3fcdd1e59",
+    "modules/sensor_impl.cpp": "3239b4aff56e15641e582935590e480dac737c02306d6312008f82c4d8114771"
+  }
+}

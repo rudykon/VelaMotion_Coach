@@ -1,0 +1,5637 @@
+<template>
+  <div class="swiper" ontouchstart="beginTouchGesture" ontouchmove="moveTouchGesture" ontouchend="finishTouchGesture">
+    <div class="screen home-screen" show="{{ pageState.showHome }}">
+      <div class="demo-page-mark" style="background-color: {{ pageState.accentColor }};"></div>
+      <div class="demo-run-mark" style="background-color: {{ live.runMarkerColor }};"></div>
+      <div class="goal-stars" style="transform: scale({{ goalStarsScale }});">
+        <text class="goal-star goal-star-left" style="opacity: {{ goalStar1Opacity }}; transform: translateX({{ goalStar1X }}px) translateY({{ goalStar1Y }}px);">★</text>
+        <text class="goal-star goal-star-top" style="opacity: {{ goalStar2Opacity }}; transform: translateX({{ goalStar2X }}px) translateY({{ goalStar2Y }}px);">★</text>
+        <text class="goal-star goal-star-right" style="opacity: {{ goalStar3Opacity }}; transform: translateX({{ goalStar3X }}px) translateY({{ goalStar3Y }}px);">★</text>
+        <text class="goal-stars-text" style="opacity: {{ goalMessageOpacity }};">30 秒目标达成</text>
+      </div>
+      <div class="app-head">
+        <div class="title-block">
+          <text class="app-title">小芽 · {{ dataSourceText }}</text>
+        </div>
+      </div>
+
+      <div class="state-card">
+        <div class="activity-row hero-activity-row">
+          <div class="buddy-zone">
+            <div class="activity-buddy-pop" style="opacity: {{ activityOpacity }}; transform: scale({{ activityScale }});">
+              <div class="heart-buddy-pulse" style="transform: scale({{ heartScale }});">
+                <div class="motion-buddy" style="transform: scale({{ buddyBreathScale }});">
+                  <div class="buddy-sprout"><div class="buddy-leaf buddy-leaf-left"></div><div class="buddy-leaf buddy-leaf-right"></div></div>
+                  <div class="buddy-eye-row"><div class="buddy-eye"></div><div class="buddy-eye"></div></div>
+                  <div class="buddy-face-row"><div class="buddy-cheek"></div><text class="buddy-activity">{{ live.activityEmoji }}</text><div class="buddy-cheek"></div></div>
+                </div>
+              </div>
+            </div>
+            <div class="baseline-dots">
+              <div class="baseline-dot" style="opacity: {{ baselineDot1Opacity }}; transform: translateY({{ baselineDot1Y }}px);"></div>
+              <div class="baseline-dot" style="opacity: {{ baselineDot2Opacity }}; transform: translateY({{ baselineDot2Y }}px);"></div>
+              <div class="baseline-dot" style="opacity: {{ baselineDot3Opacity }}; transform: translateY({{ baselineDot3Y }}px);"></div>
+            </div>
+          </div>
+          <div class="activity-copy">
+            <text class="activity-name" style="color: {{ live.activityColor }}; opacity: {{ activityOpacity }}; transform: scale({{ activityScale }});">{{ live.activityName }}</text>
+            <div class="activity-chip-row">
+              <text class="activity-chip">{{ live.elapsedText }}</text>
+            </div>
+          </div>
+        </div>
+
+        <div class="coach-box" style="background-color: {{ live.riskBgColor }}; transform: translateX({{ riskTranslateX }}px);">
+          <div class="coach-head">
+            <text class="coach-label" style="color: {{ live.riskColor }};">{{ live.riskTitle }}</text>
+          </div>
+        </div>
+      </div>
+
+      <div class="metric-strip">
+        <div class="metric-card metric-heart">
+          <text class="metric-icon">心率</text>
+          <text class="metric-value heart-value" style="transform: scale({{ heartScale }});">{{ live.hrText }}</text>
+        </div>
+        <div class="metric-card metric-steps">
+          <text class="metric-icon">步数</text>
+          <text class="metric-value">{{ live.stepText }}</text>
+        </div>
+        <div class="metric-card metric-zone">
+          <text class="metric-icon">强度</text>
+          <text class="metric-value" style="color: {{ live.zoneInk }};">{{ live.zoneText }}</text>
+        </div>
+      </div>
+
+      <div class="start-action">
+        <div class="start-ring" style="opacity: {{ startRingOpacity }}; transform: scale({{ startRingScale }});" ontouchstart="queueTouchAction('toggleRunning')" ontouchend="finishTouchGesture" if="{{ startRingOpacity > 0 }}"><div class="start-ring-core"></div></div>
+        <input class="primary-btn start-primary-btn" style="opacity: {{ startButtonOpacity }}; transform: scale({{ startButtonScale }});" type="button" value="{{ live.startButtonText }}" ontouchstart="queueTouchAction('toggleRunning')" ontouchend="finishTouchGesture" />
+      </div>
+    </div>
+
+    <div class="screen ai-screen" show="{{ pageState.showCoach }}" if="{{ coachLoaded }}">
+      <div class="demo-page-mark" style="background-color: {{ pageState.accentColor }};"></div>
+      <div class="page-head compact-head">
+        <text class="page-title">初筛</text>
+      </div>
+
+      <div class="coach-core-card">
+        <div class="process-strip coach-process-strip">
+          <div class="process-pulse" style="background-color: {{ processingStateColor }}; opacity: {{ motionPulseOpacity }}; transform: scaleX({{ motionPulseScale }});"></div>
+          <div class="process-copy">
+            <text class="process-title">{{ processingStateText }}</text>
+          </div>
+        </div>
+
+        <div class="coach-view" if="{{ !coachToolsOpen }}">
+          <div class="coach-live-row" style="background-color: {{ live.riskBgColor }}; transform: translateX({{ riskTranslateX }}px);">
+            <div class="coach-live-orb" style="background-color: {{ live.riskBgColor }};">
+              <div class="coach-orb-eye-row"><div class="coach-orb-eye"></div><div class="coach-orb-eye"></div></div>
+              <text class="coach-live-mark" style="color: {{ live.activityColor }};">{{ live.activityEmoji }}</text>
+            </div>
+            <div class="coach-live-copy">
+              <text class="coach-live-title" style="color: {{ live.activityColor }};">{{ live.activityName }} · {{ live.confidenceText }}</text>
+            </div>
+          </div>
+          <div class="prob-row coach-prob-row" for="{{ live.coachClassRows }}">
+            <text class="prob-name">{{ $item.name }}</text>
+            <text class="prob-pct">{{ $item.percent }}%</text>
+          </div>
+          <div class="coach-advice-box"><text class="coach-advice" for="{{ live.coachTipLines }}">{{ $item }}</text></div>
+        </div>
+
+        <div class="coach-view" if="{{ coachToolsOpen }}">
+          <div class="coach-selected-row">
+            <text class="coach-selected-name">{{ currentSceneName }}</text>
+          </div>
+          <div class="coach-scene-grid">
+            <input class="coach-scene-btn coach-scene-main" style="background-color: {{ sceneMixedBg }}; color: {{ sceneMixedColor }};" type="button" value="混合" ontouchstart="queueTouchAction('useMixed')" ontouchend="finishTouchGesture" />
+            <input class="coach-scene-btn" style="background-color: {{ sceneRunningBg }}; color: {{ sceneRunningColor }};" type="button" value="跑步" ontouchstart="queueTouchAction('useRunning')" ontouchend="finishTouchGesture" />
+            <input class="coach-scene-btn" style="background-color: {{ sceneFatigueBg }}; color: {{ sceneFatigueColor }};" type="button" value="疲劳跑" ontouchstart="queueTouchAction('useFatigue')" ontouchend="finishTouchGesture" />
+            <input class="coach-scene-btn" style="background-color: {{ sceneJumpBg }}; color: {{ sceneJumpColor }};" type="button" value="跳绳" ontouchstart="queueTouchAction('useJump')" ontouchend="finishTouchGesture" />
+            <input class="coach-scene-btn" style="background-color: {{ sceneStaticBg }}; color: {{ sceneStaticColor }};" type="button" value="静坐" ontouchstart="queueTouchAction('useStatic')" ontouchend="finishTouchGesture" />
+            <input class="coach-scene-btn" style="background-color: {{ sceneRealBg }}; color: {{ sceneRealColor }};" type="button" value="真机" ontouchstart="queueTouchAction('useRealDevice')" ontouchend="finishTouchGesture" />
+          </div>
+        </div>
+      </div>
+      <input class="secondary-btn core-toggle-btn" show="{{ !isRunning }}" type="button" value="{{ coachToolsButtonText }}" ontouchstart="queueTouchAction('toggleCoachTools')" ontouchend="finishTouchGesture" />
+    </div>
+
+    <div class="screen timeline-screen" show="{{ pageState.showTimeline }}" if="{{ timelineLoaded }}">
+      <div class="demo-page-mark" style="background-color: {{ pageState.accentColor }};"></div>
+      <div class="page-head compact-head">
+        <text class="page-title">时间线</text>
+      </div>
+
+      <div class="timeline-card core-timeline-card">
+        <div class="timeline-summary" if="{{ !timelineReviewOpen }}">
+          <div class="timeline-summary-orb"><text class="timeline-summary-value">{{ live.summarySegments }}</text><text class="timeline-summary-label">段</text></div>
+          <text class="timeline-summary-active">{{ live.summaryActive }}</text>
+        </div>
+
+        <div class="timeline-list" if="{{ !timelineReviewOpen }}">
+          <text class="empty timeline-empty" if="{{ live.timelineEmpty }}">运动后自动生成</text>
+          <list class="segment-scroll" ontouchstart="beginTouchGesture" ontouchmove="moveTouchGesture" ontouchend="finishTouchGesture">
+          <list-item type="segment" class="seg-row" for="{{ live.timelineRows }}">
+            <div class="seg-dot" style="background-color: {{ $item.color }};"></div>
+            <div class="seg-main">
+              <div class="seg-title-row">
+                <text class="seg-name">{{ $item.label }}</text><text class="seg-duration">{{ $item.duration }}</text>
+              </div>
+              <div class="seg-bar-row">
+                <div class="seg-track"><div class="seg-fill" style="width: {{ $item.width }}px; background-color: {{ $item.color }};"></div></div>
+              </div>
+            </div>
+          </list-item>
+          </list>
+        </div>
+
+        <div class="core-review" if="{{ timelineReviewOpen }}">
+          <div class="summary-stat-row core-summary-stat-row">
+            <div class="summary-stat"><text class="stat-value">{{ live.summaryTotal }}</text><text class="stat-label">总时长</text></div>
+            <div class="summary-stat"><text class="stat-value">{{ live.summaryActive }}</text><text class="stat-label">活动</text></div>
+            <div class="summary-stat"><text class="stat-value">{{ live.summaryRisk }}</text><text class="stat-label">提醒</text></div>
+          </div>
+          <div class="review-title-row"><text class="review-note">{{ live.summaryActiveShare }}</text></div>
+          <list class="core-ai-review" ontouchstart="beginTouchGesture" ontouchmove="moveTouchGesture" ontouchend="finishTouchGesture"><list-item class="review-copy-item" type="review-copy" for="{{ live.aiSummaryLines }}"><text class="core-ai-review-text">{{ $item }}</text></list-item></list>
+          <input class="core-ai-review-btn" type="button" value="{{ live.aiSummaryButtonText }}" ontouchstart="queueTouchAction('refreshAiSummary')" ontouchend="finishTouchGesture" />
+        </div>
+      </div>
+      <input class="secondary-btn core-toggle-btn" show="{{ !live.timelineEmpty && !isRunning }}" type="button" value="{{ timelineViewButtonText }}" ontouchstart="queueTouchAction('toggleTimelineReview')" ontouchend="finishTouchGesture" />
+    </div>
+
+    <div class="screen sync-screen" show="{{ pageState.showSyncReview }}" if="{{ syncLoaded }}">
+      <div class="demo-page-mark" style="background-color: {{ pageState.accentColor }};"></div>
+      <div class="page-head compact-head">
+        <text class="page-title">协同</text>
+      </div>
+
+      <div class="review-tabs">
+        <input class="review-tab review-tab-wide" style="background-color: {{ reviewSyncTabBg }}; color: {{ reviewSyncTabColor }};" type="button" value="同步" ontouchstart="queueTouchAction('showSyncPanel')" ontouchend="finishTouchGesture" />
+        <input class="review-tab review-tab-wide" style="background-color: {{ reviewHistoryTabBg }}; color: {{ reviewHistoryTabColor }};" type="button" value="历史" ontouchstart="queueTouchAction('showHistoryPanel')" ontouchend="finishTouchGesture" />
+        <input class="review-tab review-tab-wide" style="background-color: {{ reviewMoreTabBg }}; color: {{ reviewMoreTabColor }};" type="button" value="更多" ontouchstart="queueTouchAction('showDiagnosticPanel')" ontouchend="finishTouchGesture" />
+      </div>
+
+      <div class="sync-card core-sync-card" if="{{ showReviewPanelSync }}">
+        <div class="process-strip sync-process-strip">
+          <div class="process-pulse" style="background-color: {{ processingStateColor }}; opacity: {{ motionPulseOpacity }}; transform: scaleX({{ motionPulseScale }});"></div>
+          <div class="process-copy">
+            <text class="process-title">{{ processingStateText }}</text>
+          </div>
+        </div>
+        <text class="precise-stamp" if="{{ preciseReviewReady }}" style="opacity: {{ preciseStampOpacity }}; transform: scale({{ preciseStampScale }});">已回填</text>
+        <text class="precise-wait" if="{{ !preciseReviewReady }}">{{ syncFeedbackText }}</text>
+        <div class="export-metrics core-export-metrics">
+          <div class="export-metric"><text class="export-value">{{ exportTotalText }}</text><text class="export-label">时长</text></div>
+          <div class="export-metric"><text class="export-value">{{ exportSegmentText }}</text><text class="export-label">片段</text></div>
+          <div class="export-metric"><text class="export-value">{{ exportRiskText }}</text><text class="export-label">提醒</text></div>
+        </div>
+        <div class="sync-buttons core-sync-buttons" show="{{ !isRunning }}">
+          <input class="mini-btn" style="opacity: {{ syncDiagnoseOpacity }};" type="button" value="{{ syncDiagnoseButtonText }}" ontouchstart="queueTouchAction('diagnoseSync')" ontouchend="finishTouchGesture" />
+          <input class="mini-btn primary-mini" style="opacity: {{ syncSendOpacity }};" type="button" value="{{ syncSendButtonText }}" ontouchstart="queueTouchAction('sendLatestToPhone')" ontouchend="finishTouchGesture" />
+        </div>
+      </div>
+
+      <div class="history-card core-fold-card" if="{{ showReviewPanelHistory }}">
+        <text class="empty history-empty" if="{{ historyEmpty }}">暂无记录</text>
+        <list class="history-scroll" if="{{ !historyEmpty }}" ontouchstart="beginTouchGesture" ontouchmove="moveTouchGesture" ontouchend="finishTouchGesture">
+        <list-item type="history" class="history-row" for="{{ historyRows }}">
+          <div class="history-main">
+            <div class="history-title-row"><text class="history-title">{{ $item.title }}</text><text class="history-time">{{ $item.time }}</text></div>
+          </div>
+          <div class="history-side"><text class="history-score">{{ $item.score }}</text></div>
+        </list-item>
+        </list>
+        <input class="fold-action-btn history-clear-btn" show="{{ !historyEmpty && !isRunning }}" style="background-color: {{ historyClearButtonBg }}; color: {{ historyClearButtonColor }};" type="button" value="{{ historyClearButtonText }}" ontouchstart="queueTouchAction('clearHistory')" ontouchend="finishTouchGesture" />
+      </div>
+
+      <div class="diagnostic-card core-fold-card" if="{{ showReviewPanelDiagnostic }}">
+        <div class="more-tabs"><input class="more-tab" style="background-color: {{ moreDeviceTabBg }}; color: {{ moreDeviceTabColor }};" type="button" value="设备" ontouchstart="queueTouchAction('showDiagnosticPanel')" ontouchend="finishTouchGesture" /><input class="more-tab" style="background-color: {{ morePrivacyTabBg }}; color: {{ morePrivacyTabColor }};" type="button" value="隐私" ontouchstart="queueTouchAction('showPrivacyPanel')" ontouchend="finishTouchGesture" /></div>
+        <list class="diagnostic-scroll" ontouchstart="beginTouchGesture" ontouchmove="moveTouchGesture" ontouchend="finishTouchGesture">
+        <list-item type="diagnostic" class="diag-row" for="{{ diagnosticRows }}">
+          <div class="diag-dot" style="background-color: {{ $item.color }};"></div>
+          <text class="diag-name">{{ $item.name }}</text>
+          <text class="diag-status">{{ $item.status }}</text>
+        </list-item>
+        </list>
+        <input class="fold-action-btn" show="{{ !isRunning }}" type="button" value="{{ diagnosticButtonText }}" ontouchstart="queueTouchAction('runDiagnostics')" ontouchend="finishTouchGesture" />
+      </div>
+
+      <div class="privacy-card core-fold-card" if="{{ showReviewPanelPrivacy }}">
+        <div class="more-tabs"><input class="more-tab" style="background-color: {{ moreDeviceTabBg }}; color: {{ moreDeviceTabColor }};" type="button" value="设备" ontouchstart="queueTouchAction('showDiagnosticPanel')" ontouchend="finishTouchGesture" /><input class="more-tab" style="background-color: {{ morePrivacyTabBg }}; color: {{ morePrivacyTabColor }};" type="button" value="隐私" ontouchstart="queueTouchAction('showPrivacyPanel')" ontouchend="finishTouchGesture" /></div>
+        <div class="privacy-grid core-privacy-grid">
+          <div class="privacy-item core-privacy-item"><text class="privacy-icon">端</text><text class="privacy-title">腕上</text></div>
+          <div class="privacy-item core-privacy-item"><text class="privacy-icon">存</text><text class="privacy-title">本地</text></div>
+          <div class="privacy-item core-privacy-item"><text class="privacy-icon">回</text><text class="privacy-title">回填</text></div>
+        </div>
+        <input class="fold-action-btn" show="{{ !isRunning }}" type="button" value="{{ motionEffectButtonText }}" ontouchstart="queueTouchAction('toggleMotionEffects')" ontouchend="finishTouchGesture" />
+      </div>
+    </div>
+
+    <input class="global-stop" show="{{ isRunning && !pageState.showHome }}" type="button" value="停止训练" ontouchstart="queueTouchAction('stopSession')" ontouchend="finishTouchGesture" />
+    <input class="nav-prev" type="button" value="桌面" ontouchstart="queueTouchAction('returnToDesktop')" ontouchend="finishTouchGesture" />
+    <div class="page-dots" show="{{ !isRunning }}">
+      <div class="page-dot" style="background-color: {{ pageState.dot0Color }}; transform: scale({{ pageState.dot0Scale }});"></div>
+      <div class="page-dot" style="background-color: {{ pageState.dot1Color }}; transform: scale({{ pageState.dot1Scale }});"></div>
+      <div class="page-dot" style="background-color: {{ pageState.dot2Color }}; transform: scale({{ pageState.dot2Scale }});"></div>
+      <div class="page-dot" style="background-color: {{ pageState.dot3Color }}; transform: scale({{ pageState.dot3Scale }});"></div>
+    </div>
+    <input class="nav-next" type="button" value="下一页" ontouchstart="queueTouchAction('nextDemoPage')" ontouchend="finishTouchGesture" />
+  </div>
+</template>
+
+<script>
+import { MotionEngine, probabilityRows, formatSec, segmentRows } from '../../common/algorithm/motion_engine.js';
+import { CooperativeMotionRunner } from '../../common/algorithm/cooperative_motion_runner.js';
+import { MotionFxController, motionNeutralFrame } from '../../common/ui/motion_fx_controller.js';
+import { TouchGesture } from '../../common/ui/touch_gesture.js';
+import { LivePatchBuffer, PAGE_LIVE_KEYS } from '../../common/ui/live_patch.js';
+import { InteractionScheduler } from '../../common/ui/interaction_scheduler.js';
+import { CooperativeSteps } from '../../common/ui/cooperative_steps.js';
+import { HISTORY_CLEAR_ACTIONS, historyClearAction, syncActionPermission, wrappedPageIndex } from '../../common/ui/interaction_state.js';
+import { classEmoji, classColor, CLASS_NAMES, CLASS_BG, SAMPLE_PERIOD_MS } from '../../common/algorithm/config.js';
+import { classifyHrZone, buildCoachTip, buildSummary, analyzeWorkoutRisk } from '../../common/algorithm/intensity_rules.js';
+import { MockSensorProvider } from '../../common/sensor/mock_sensor_provider.js';
+import { RealSensorProvider } from '../../common/sensor/real_sensor_provider.js';
+import { getScenario } from '../../common/sensor/mock_scenarios.js';
+import { HealthProvider, DATA_TYPES } from '../../common/sensor/health_provider.js';
+import { saveSession, loadSessions, listSessions, clearSessions } from '../../common/storage/session_store.js';
+import { diagnosePhoneLink, sendSessionToPhone, buildExportPreview, subscribePhoneMessages } from '../../common/sync/interconnect_sync.js';
+import { PROCESSING_STATES, processingStateView, inspectPreciseResult, preciseResultAcceptance } from '../../common/sync/processing_state.js';
+import { runDeviceDiagnostics } from '../../common/device/device_diagnostics.js';
+import { getSessionStartPermission, getDiagnosticStartPermission, getRealTrainingPermission } from '../../common/device/operation_guard.js';
+import { pulseWorkoutAlert, shouldShakeRiskCard } from '../../common/device/vibration_provider.js';
+import { loadOptionalFeature } from '../../common/device/optional_features.js';
+const brightness = loadOptionalFeature('brightness');
+const battery = loadOptionalFeature('battery');
+import { requestAiSummary, buildLocalAiSummary } from '../../common/ai/summary_provider.js';
+
+const touchGesture = new TouchGesture();
+const liveUpdates = new LivePatchBuffer(
+  (vm) => PAGE_LIVE_KEYS[vm.pageState.index] || [],
+  () => !touchGesture.state || Date.now() - touchGesture.state.time > 5000,
+);
+const interactionScheduler = new InteractionScheduler();
+const inferenceSchedule = { schedule: (callback) => interactionScheduler.schedule(callback) };
+let engine = null;
+let inferenceRunner = null;
+const stopWork = new CooperativeSteps();
+let stopGeneration = 0;
+let motionFx = null;
+let unsubscribePhoneMessages = null;
+let mockProvider = null;
+let realProvider = null;
+let healthProvider = null;
+const AUTO_START_DEMO = false;
+const AUTO_START_SCENE = 'mixed_workout';
+const AUTO_START_OFFSET_SEC = 6.2;
+const AUTO_PAGE_DEMO = false;
+const GOAL_ACTIVE_SEC = 30;
+
+let selectedSceneId = AUTO_START_SCENE;
+let dataProviderMode = 'mock';
+let lastResult = null;
+let lastSample = null;
+let sessionStartMs = 0;
+let lastProbeLogMs = 0;
+let lastAlertAtMs = 0;
+let lastAlertKey = '';
+let trendSamples = [];
+let riskEvents = [];
+let lastTrendSecond = -1;
+let lastRiskEventAtMs = 0;
+let lastRiskEventKey = '';
+let lastSummarySnapshot = null;
+let lastAnimatedActivityKey = '';
+let goalActiveReached = false;
+let demoPageTimer = null;
+let demoStopTimer = null;
+let demoSceneTimer = null;
+let autoStartTimer = null;
+let batteryPolicyGeneration = 0;
+let pageDisposing = false;
+let historyClearTimer = null;
+let syncOperationTimer = null;
+let syncOperationGeneration = 0;
+let lastSyncSendAtMs = 0;
+let aiSummaryTimer = null;
+let aiSummaryGeneration = 0;
+let diagnosticTimer = null;
+let diagnosticGeneration = 0;
+
+function clearDemoSessionTimers() {
+  if (demoStopTimer) clearTimeout(demoStopTimer);
+  if (demoSceneTimer) clearTimeout(demoSceneTimer);
+  demoStopTimer = null;
+  demoSceneTimer = null;
+}
+
+function setTrainingScreenOn(keep) {
+  const enabled = !!keep;
+  try {
+    if (!brightness || !brightness.setKeepScreenOn) {
+      console.log("VMC_SCREEN_KEEP_ON unavailable");
+      return false;
+    }
+    brightness.setKeepScreenOn({
+      keepScreenOn: enabled,
+      success() {
+        console.log("VMC_SCREEN_KEEP_ON enabled=" + enabled);
+      },
+      fail(data, code) {
+        console.log("VMC_SCREEN_KEEP_ON_FAIL enabled=" + enabled + " code=" + code);
+      },
+    });
+    return true;
+  } catch (e) {
+    console.log("VMC_SCREEN_KEEP_ON_ERROR enabled=" + enabled + " error=" + (e && e.message ? e.message : e));
+    return false;
+  }
+}
+
+function pct(v) {
+  return `${Math.round((v || 0) * 100)}%`;
+}
+
+function finiteNumber(value, fallback) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function secFromNow(sample) {
+  if (!sample || !sessionStartMs) return 0;
+  return Math.max(0, Math.floor((sample.timeStamp - sessionStartMs) / 1000));
+}
+
+function initialRows() {
+  return probabilityRows(new Array(CLASS_NAMES.length).fill(0));
+}
+
+function topCoachRows(rows) {
+  return (rows || [])
+    .slice()
+    .sort((left, right) => Number(right.percent || 0) - Number(left.percent || 0))
+    .slice(0, 2);
+}
+
+function twoDigit(n) {
+  return n < 10 ? `0${n}` : `${n}`;
+}
+
+function formatSavedAt(ms) {
+  const d = new Date(ms || Date.now());
+  return `${twoDigit(d.getMonth() + 1)}/${twoDigit(d.getDate())} ${twoDigit(d.getHours())}:${twoDigit(d.getMinutes())}`;
+}
+
+const SCENE_WAVES = {
+  mixed_workout: [8, 12, 30, 42, 26, 14, 38, 46, 24, 12, 32, 40, 20, 8],
+  running: [12, 34, 18, 42, 16, 38, 20, 44, 18, 40, 16, 36, 20, 12],
+  fatigue_running: [10, 28, 18, 34, 22, 40, 26, 44, 30, 46, 34, 42, 28, 14],
+  jump_rope: [8, 44, 10, 46, 8, 42, 12, 46, 8, 44, 10, 46, 8, 12],
+  static: [8, 10, 9, 11, 8, 10, 9, 12, 8, 9, 10, 8, 9, 8],
+  real_device: [10, 14, 12, 20, 16, 26, 18, 32, 22, 28, 20, 34, 24, 18],
+};
+
+function scenePreviewRows(sceneId) {
+  const values = SCENE_WAVES[sceneId] || SCENE_WAVES.mixed_workout;
+  const sceneColors = {
+    running: '#16755A',
+    fatigue_running: '#EF4444',
+    jump_rope: '#2563EB',
+    static: '#94A3B8',
+    real_device: '#111111',
+  };
+  const mixedColors = ['#94A3B8', '#16755A', '#16755A', '#16755A', '#2563EB', '#2563EB', '#DC2626', '#DC2626', '#16A34A', '#16A34A', '#7C3AED', '#7C3AED', '#94A3B8', '#94A3B8'];
+  return values.map((height, idx) => ({
+    height,
+    color: sceneId === 'mixed_workout' ? mixedColors[idx] : (sceneColors[sceneId] || '#16755A'),
+  }));
+}
+
+function sceneHint(sceneId) {
+  const hints = {
+    mixed_workout: '多动作连续切换',
+    running: '稳定跑步节奏',
+    fatigue_running: '后程强度上升',
+    jump_rope: '高频周期动作',
+    static: '低运动基线',
+    real_device: '读取腕上数据',
+  };
+  return hints[sceneId] || '自动识别';
+}
+
+function zoneBarWidth(level) {
+  if (level === 'easy') return 82;
+  if (level === 'aerobic') return 168;
+  if (level === 'hard') return 254;
+  if (level === 'peak') return 340;
+  return 18;
+}
+
+function compactWatchSummary(text) {
+  const clean = String(text || '').replace(/\s+/g, ' ').trim();
+  if (!clean) return '训练后生成一句建议。';
+  const firstStop = clean.search(/[。！？]/);
+  if (firstStop >= 14 && firstStop <= 48) return clean.slice(0, firstStop + 1);
+  return clean.length > 48 ? clean.slice(0, 48) + '…' : clean;
+}
+
+function watchDiagnosticRows(rows) {
+  const shortNames = {
+    '屏幕/设备': '屏幕',
+    '电量/功耗基线': '电量/功耗',
+    'service.health': '健康',
+    '真实 ACC': 'ACC',
+    '真实步数': '步数',
+    '腕上振动': '振动',
+    '真实 GYRO': 'GYRO',
+    '真机诊断': '诊断',
+  };
+  return (rows || []).slice(0, 7).map((row) => ({
+    name: shortNames[row.name] || row.name,
+    status: row.status || '待测',
+    detail: row.detail || '',
+    color: row.status === '通过' ? '#22C55E' : (row.status === '失败' ? '#EF4444' : '#6E7FEA'),
+  }));
+}
+
+function diagnosticOverview(rows) {
+  const list = rows || [];
+  const passed = list.filter((row) => row.status === '通过').length;
+  const boundary = list.filter((row) => row.status === '边界').length;
+  const total = Math.max(1, list.length);
+  return {
+    text: list.length ? `${passed} 通过 · ${boundary} 边界` : '待检测',
+    width: list.length ? Math.max(18, Math.round(248 * passed / total)) : 18,
+  };
+}
+
+function historyRowsFromSessions(items) {
+  return (items || []).slice(0, 4).map((it) => {
+    const summary = it.summary || {};
+    const sceneName = it.sceneName || (it.sceneId === 'real_device' ? '真机采集' : getScenario(it.sceneId || 'mixed_workout').name);
+    const total = Math.max(1, Number(summary.totalSec || 0));
+    const active = Math.max(0, Number(summary.activeSec || 0));
+    return {
+      title: sceneName,
+      time: formatSavedAt(it.savedAt),
+      activeText: formatSec(active),
+      activeWidth: Math.max(8, Math.round(126 * Math.min(1, active / total))),
+      segmentText: `${summary.segmentCount || 0} 段`,
+      score: summary.zoneLabel || (summary.bpm && summary.bpm !== '--' ? `${summary.bpm}` : '--'),
+    };
+  });
+}
+
+function activityShareRowsFromSummary(summary) {
+  const byClass = summary && summary.byClass ? summary.byClass : {};
+  const totalSec = Math.max(1, summary && summary.totalSec ? summary.totalSec : 0);
+  const rows = [];
+  CLASS_NAMES.forEach((name, idx) => {
+    const sec = Math.round(byClass[idx] || byClass[String(idx)] || 0);
+    if (sec <= 0) return;
+    const share = Math.max(0, Math.min(1, sec / totalSec));
+    rows.push({
+      idx,
+      sec,
+      name: `${classEmoji(idx)} ${name}`,
+      duration: formatSec(sec),
+      percent: `${Math.round(share * 100)}%`,
+      width: Math.max(8, Math.round(210 * share)),
+      color: idx === CLASS_BG ? '#CBD5E1' : classColor(idx),
+    });
+  });
+  rows.sort((a, b) => b.sec - a.sec);
+  if (rows.length === 0) {
+    return [{ name: '等待数据', duration: '--', percent: '--', width: 8, color: '#E5E7EB' }];
+  }
+  return rows.slice(0, 4);
+}
+
+function intensityTrendRowsFromSamples(samples) {
+  const src = (samples || []).slice(-14);
+  const rows = src.map((it) => {
+    const bpm = it && it.bpm ? it.bpm : 0;
+    const height = bpm > 0 ? Math.max(8, Math.min(50, Math.round(8 + ((bpm - 60) / 110) * 42))) : 6;
+    return {
+      height,
+      color: it && it.color ? it.color : '#E5E7EB',
+      label: bpm ? `${Math.round(bpm)}` : '--',
+    };
+  });
+  while (rows.length < 14) rows.unshift({ height: 6, color: '#E5E7EB', label: '--' });
+  return rows;
+}
+
+function riskRowsFromEvents(events) {
+  return (events || []).slice(-3).reverse().map((it) => ({
+    time: it.time,
+    title: it.title,
+    message: it.message,
+    color: it.color,
+  }));
+}
+
+function activeShareText(summary) {
+  const total = summary && summary.totalSec ? summary.totalSec : 0;
+  const active = summary && summary.activeSec ? summary.activeSec : 0;
+  if (!total) return '活跃 --';
+  return `活跃 ${Math.round((active / Math.max(1, total)) * 100)}%`;
+}
+
+const PAGE_NAMES = ["01 首页", "02 腕上教练", "03 动作时间线", "04 同步复盘"];
+const PAGE_COLORS = ["#3EBE9B", "#62A9E8", "#6E7FEA", "#D66B8C"];
+
+function pageStateFor(index) {
+  const safeIndex = Math.max(0, Math.min(PAGE_NAMES.length - 1, Number(index) || 0));
+  return {
+    index: safeIndex,
+    pageNo: PAGE_NAMES[safeIndex],
+    accentColor: PAGE_COLORS[safeIndex],
+    showHome: safeIndex === 0,
+    showCoach: safeIndex === 1,
+    showTimeline: safeIndex === 2,
+    showSyncReview: safeIndex === 3,
+    dot0Color: safeIndex === 0 ? PAGE_COLORS[0] : '#CFE3DA',
+    dot1Color: safeIndex === 1 ? PAGE_COLORS[1] : '#CFE3DA',
+    dot2Color: safeIndex === 2 ? PAGE_COLORS[2] : '#CFE3DA',
+    dot3Color: safeIndex === 3 ? PAGE_COLORS[3] : '#CFE3DA',
+    dot0Scale: safeIndex === 0 ? 1.28 : 1,
+    dot1Scale: safeIndex === 1 ? 1.28 : 1,
+    dot2Scale: safeIndex === 2 ? 1.28 : 1,
+    dot3Scale: safeIndex === 3 ? 1.28 : 1,
+  };
+}
+
+function createInitialLiveState() {
+  return {
+    runStatusText: "待开始",
+    runMarkerColor: "#94A3B8",
+    alertStatusText: "提醒开启",
+    startButtonText: "开始",
+    activityEmoji: "动",
+    activityName: "待机",
+    activityColor: "#111111",
+    confidenceText: "--",
+    elapsedText: "0:00",
+    hrText: "--",
+    stepText: "0",
+    accText: "等待动作数据",
+    zoneText: "--",
+    zoneColor: "#111111",
+    zoneInk: "#111111",
+    zoneWidth: 18,
+    coachTip: "识别动作，提醒运动强度",
+    coachTipLines: ["识别动作", "提醒运动强度"],
+    riskTitle: "状态正常",
+    riskMessage: "未发现疲劳或异常强度。",
+    riskColor: "#16A34A",
+    riskBgColor: "#F0FDF4",
+    classRows: initialRows(),
+    coachClassRows: topCoachRows(initialRows()),
+    timelineRows: [],
+    timelineEmpty: true,
+    summaryTotal: "0:00",
+    summaryActive: "0:00",
+    summarySegments: "0",
+    summaryTip: "停止训练后自动保存到本地历史。",
+    summaryActiveShare: "活跃 --",
+    summaryRisk: "无风险",
+    aiSummaryTitle: "等待训练",
+    aiSummaryText: "训练后生成一句建议。",
+    aiSummaryLines: ["训练后生成一句建议。"],
+    aiSummarySource: "本地总结",
+    aiSummaryButtonText: "生成建议",
+    activityShareRows: activityShareRowsFromSummary({}),
+    intensityTrendRows: intensityTrendRowsFromSamples([]),
+    riskRows: [],
+    riskEmpty: true,
+  };
+}
+
+function patchLive(vm, patch) {
+  const current = liveUpdates.current(vm) || createInitialLiveState();
+  const next = Object.assign({}, current, patch || {});
+  // Bright activity colors remain on bars; use darker ink for small-screen text.
+  const zoneInk = { '#38BDF8': '#176289', '#22C55E': '#16755A', '#F97316': '#A34310', '#EF4444': '#B3261E' };
+  next.zoneInk = zoneInk[String(next.zoneColor).toUpperCase()] || next.zoneColor;
+  // A single actionable clause stays readable without squeezing the watch font.
+  if (!current.coachTipLines || (patch && patch.coachTip !== undefined && patch.coachTip !== current.coachTip)) {
+    const coachClauses = String(next.coachTip || '').split(/[，。！？]/).filter(Boolean);
+    next.coachTip = coachClauses.length ? coachClauses[coachClauses.length - 1] : '';
+    next.coachTipLines = [next.coachTip.slice(0, 10), next.coachTip.slice(10)].filter(Boolean);
+  }
+  if (!current.aiSummaryLines || next.aiSummaryText !== current.aiSummaryText)
+    next.aiSummaryLines = String(next.aiSummaryText || '').match(/.{1,11}/g) || [];
+  return liveUpdates.commit(vm, next);
+}
+
+export default {
+  private: {
+    pageState: pageStateFor(0),
+    coachLoaded: false,
+    timelineLoaded: false,
+    syncLoaded: false,
+    currentSceneName: "混合训练",
+    sceneDesc: sceneHint("mixed_workout"),
+    scenePreviewRows: scenePreviewRows("mixed_workout"),
+    dataSourceText: "演示",
+    storageStatusText: "读取中",
+    isRunning: false,
+    isFinalizing: false,
+    live: createInitialLiveState(),
+    serviceHealthText: "Mock 兜底",
+    historyRows: [],
+    historyEmpty: true,
+    historyClearArmed: false,
+    historyClearBusy: false,
+    historyClearButtonText: "清空",
+    historyClearButtonBg: "#E3F5EE",
+    historyClearButtonColor: "#16755A",
+    syncStatusText: "未检测",
+    syncFeedbackText: "待回填",
+    syncDiagnosing: false,
+    syncSending: false,
+    syncDiagnoseButtonText: "检测",
+    syncSendButtonText: "发送",
+    syncDiagnoseOpacity: 1,
+    syncSendOpacity: 1,
+    exportStatusText: "等待历史",
+    exportPreviewText: "停止训练后可同步摘要到手机端。",
+    exportTotalText: "--",
+    exportSegmentText: "--",
+    exportRiskText: "--",
+    diagnosticRows: watchDiagnosticRows([
+      { name: "真机诊断", status: "待测", detail: "点击检测" },
+      { name: "真实 GYRO", status: "边界", detail: "需原生适配" },
+    ]),
+    diagnosticSummaryText: "待检测",
+    diagnosticPassWidth: 18,
+    diagnosticButtonText: "检测",
+    isDiagnosing: false,
+    aiSummaryBusy: false,
+    coachToolsOpen: false,
+    coachToolsButtonText: "场景",
+    timelineReviewOpen: false,
+    timelineViewButtonText: "复盘",
+    showReviewPanelSync: true,
+    showReviewPanelHistory: false,
+    showReviewPanelDiagnostic: false,
+    showReviewPanelPrivacy: false,
+    reviewSyncTabBg: "#22312D",
+    reviewSyncTabColor: "#FFFFFF",
+    reviewHistoryTabBg: "#FFFFFF",
+    reviewHistoryTabColor: "#5F6F69",
+    reviewMoreTabBg: "#FFFFFF",
+    reviewMoreTabColor: "#5F6F69",
+    moreDeviceTabBg: "#22312D",
+    moreDeviceTabColor: "#FFFFFF",
+    morePrivacyTabBg: "#FFFFFF",
+    morePrivacyTabColor: "#5F6F69",
+    processingStateKey: PROCESSING_STATES.WATCH_SCREENING,
+    processingStateText: "腕上初筛",
+    processingStateDetail: "端侧轻量识别，不上传原始流",
+    processingStateColor: "#3E9E82",
+    preciseReviewReady: false,
+    preciseReviewText: "尚未收到手机精确结果",
+    pageVisible: false,
+    motionEffectsEnabled: false,
+    motionEffectsPaused: true,
+    animationPowerSave: false,
+    baselineActive: false,
+    motionPulseScale: 1,
+    motionPulseOpacity: 0.56,
+    buddyBreathScale: 1,
+    startRingScale: 0.72,
+    startRingOpacity: 0,
+    startButtonScale: 1,
+    startButtonOpacity: 1,
+    baselineDot1Y: 0,
+    baselineDot2Y: 0,
+    baselineDot3Y: 0,
+    baselineDot1Opacity: 0,
+    baselineDot2Opacity: 0,
+    baselineDot3Opacity: 0,
+    activityScale: 1,
+    activityOpacity: 1,
+    heartScale: 1,
+    riskTranslateX: 0,
+    goalStarsScale: 0.72,
+    goalStar1X: 0,
+    goalStar1Y: 4,
+    goalStar2X: 0,
+    goalStar2Y: 4,
+    goalStar3X: 0,
+    goalStar3Y: 4,
+    goalStar1Opacity: 0,
+    goalStar2Opacity: 0,
+    goalStar3Opacity: 0,
+    goalMessageOpacity: 0,
+    preciseStampScale: 1,
+    preciseStampOpacity: 0,
+    syncDot1Opacity: 1,
+    syncDot2Opacity: 0.34,
+    syncDot3Opacity: 0.34,
+    motionPolicyText: "动效待机",
+    motionPolicyDetail: "页面显示时启用轻量动效；低电量且未充电时自动暂停。",
+    motionEffectButtonText: "恢复动效",
+    batteryLevelText: "电量未知",
+    goalActiveText: "本次活跃目标 30 秒",
+    sceneMixedBg: "#DFF6EE",
+    sceneMixedColor: "#16755A",
+    sceneRunningBg: "#F0F5F2",
+    sceneRunningColor: "#42514B",
+    sceneFatigueBg: "#F0F5F2",
+    sceneFatigueColor: "#42514B",
+    sceneJumpBg: "#F0F5F2",
+    sceneJumpColor: "#42514B",
+    sceneStaticBg: "#F0F5F2",
+    sceneStaticColor: "#42514B",
+    sceneRealBg: "#F0F5F2",
+    sceneRealColor: "#42514B",
+  },
+
+  onReady() {
+    pageDisposing = false;
+    batteryPolicyGeneration += 1;
+    setTrainingScreenOn(false);
+    engine = new MotionEngine();
+    inferenceRunner = new CooperativeMotionRunner(engine, inferenceSchedule);
+    motionFx = new MotionFxController();
+    mockProvider = new MockSensorProvider();
+    realProvider = new RealSensorProvider();
+    unsubscribePhoneMessages = subscribePhoneMessages((payload) => this.handlePhoneMessage(payload));
+    this.loadSessionHistory();
+    this.applyExportPreview();
+    this.applyScene(AUTO_START_SCENE, true);
+    if (AUTO_START_DEMO) {
+      if (autoStartTimer) clearTimeout(autoStartTimer);
+      autoStartTimer = setTimeout(() => {
+        autoStartTimer = null;
+        if (!pageDisposing && !this.isRunning && mockProvider) {
+          console.log(`VMC_AUTO_START_MOCK scene=${AUTO_START_SCENE} startOffsetSec=${AUTO_START_OFFSET_SEC}`);
+          this.startSession(AUTO_START_OFFSET_SEC);
+        }
+      }, 800);
+    }
+    if (AUTO_PAGE_DEMO) this.startDemoCarousel();
+  },
+
+  onShow() {
+    this.pageVisible = true;
+    patchLive(this, this.inferenceViewPatch());
+    liveUpdates.flush(this);
+    setTrainingScreenOn(this.isRunning);
+    this.refreshBatteryPolicy();
+    this.refreshMotionEffects();
+  },
+
+  onHide() {
+    touchGesture.cancel();
+    this.pageVisible = false;
+    this.resetHistoryClear();
+    batteryPolicyGeneration += 1;
+    setTrainingScreenOn(false);
+    if (motionFx) motionFx.pause();
+    this.motionEffectsPaused = true;
+    this.applyMotionFrame(motionNeutralFrame(this.preciseReviewReady));
+    this.motionPolicyText = this.animationPowerSave ? "低电量省电" : "动效已暂停";
+  },
+
+  onDestroy() {
+    touchGesture.cancel();
+    this.pageVisible = false;
+    this.motionEffectsPaused = true;
+    pageDisposing = true;
+    stopGeneration += 1;
+    stopWork.drain();
+    batteryPolicyGeneration += 1;
+    setTrainingScreenOn(false);
+    if (motionFx) motionFx.pause();
+    this.applyMotionFrame(motionNeutralFrame(this.preciseReviewReady));
+    if (unsubscribePhoneMessages) unsubscribePhoneMessages();
+    unsubscribePhoneMessages = null;
+    if (inferenceRunner) inferenceRunner.cancel();
+    if (mockProvider) mockProvider.stop();
+    if (realProvider) realProvider.stop();
+    if (healthProvider) healthProvider.stop();
+    if (demoPageTimer) clearInterval(demoPageTimer);
+    demoPageTimer = null;
+    if (autoStartTimer) clearTimeout(autoStartTimer);
+    autoStartTimer = null;
+    if (historyClearTimer) clearTimeout(historyClearTimer);
+    historyClearTimer = null;
+    if (syncOperationTimer) clearTimeout(syncOperationTimer);
+    syncOperationTimer = null;
+    syncOperationGeneration += 1;
+    if (aiSummaryTimer) clearTimeout(aiSummaryTimer);
+    aiSummaryTimer = null;
+    aiSummaryGeneration += 1;
+    if (diagnosticTimer) clearTimeout(diagnosticTimer);
+    diagnosticTimer = null;
+    diagnosticGeneration += 1;
+    clearDemoSessionTimers();
+  },
+
+  beginTouchGesture(event) {
+    interactionScheduler.touch();
+    touchGesture.begin(event, '', Date.now());
+  },
+
+  returnToDesktop() {
+    touchGesture.cancel();
+    this.$app.exit();
+  },
+
+  onBackPress() {
+    this.returnToDesktop();
+    return true;
+  },
+
+  queueTouchAction(action, event) {
+    interactionScheduler.touch();
+    touchGesture.begin(event, action, Date.now());
+  },
+
+  moveTouchGesture(event) {
+    interactionScheduler.touch();
+    this.applyTouchResult(touchGesture.move(event));
+  },
+
+  finishTouchGesture(event) {
+    interactionScheduler.touch();
+    this.applyTouchResult(touchGesture.end(event, Date.now()));
+    liveUpdates.flush(this);
+  },
+
+  applyTouchResult(result) {
+    if (!result || !this.pageVisible) return;
+    if (result.pageDelta) {
+      this.setDemoPage(wrappedPageIndex(this.pageState.index, result.pageDelta, PAGE_NAMES.length));
+      console.log(`VMC_GESTURE_PAGE index=${this.pageState.index}`);
+    } else if (result.action && typeof this[result.action] === 'function') {
+      this[result.action]();
+    }
+  },
+
+  setDemoPage(index) {
+    touchGesture.cancel();
+    if (this.pageState && this.pageState.index === 3 && Number(index) !== 3) this.resetHistoryClear();
+    if (Number(index) === 1) this.coachLoaded = true;
+    if (Number(index) === 2) this.timelineLoaded = true;
+    if (Number(index) === 3) this.syncLoaded = true;
+    const nextPage = pageStateFor(index);
+    Object.keys(nextPage).forEach((key) => {
+      if (this.pageState[key] !== nextPage[key]) this.pageState[key] = nextPage[key];
+    });
+    patchLive(this, this.inferenceViewPatch());
+    liveUpdates.flush(this);
+    this.updateMotionChannels();
+  },
+
+  previousDemoPage() {
+    const previous = wrappedPageIndex(this.pageState.index, -1, PAGE_NAMES.length);
+    this.setDemoPage(previous);
+    console.log(`VMC_DEMO_PAGE_MANUAL index=${this.pageState.index}`);
+  },
+
+  nextDemoPage() {
+    const next = wrappedPageIndex(this.pageState.index, 1, PAGE_NAMES.length);
+    this.setDemoPage(next);
+    console.log(`VMC_DEMO_PAGE_MANUAL index=${this.pageState.index}`);
+  },
+
+  startDemoCarousel() {
+    if (demoPageTimer) clearInterval(demoPageTimer);
+    clearDemoSessionTimers();
+    this.setDemoPage(0);
+    const pageSchedule = [0, 1, 2, 3];
+    let cursor = 0;
+    demoPageTimer = setInterval(() => {
+      cursor = (cursor + 1) % pageSchedule.length;
+      this.setDemoPage(pageSchedule[cursor]);
+      console.log(`VMC_DEMO_PAGE index=${this.pageState.index}`);
+    }, 2400);
+    demoSceneTimer = setTimeout(() => {
+      if (this.isRunning) {
+        // The carousel intentionally changes the active Mock stream while a
+        // demo session is running. User-triggered scene changes remain blocked
+        // by applyScene(), but this controlled transition must bypass that guard.
+        this.applyScene('fatigue_running', true);
+        console.log('VMC_DEMO_SCENE scene=fatigue_running');
+      }
+    }, 10500);
+    demoStopTimer = setTimeout(() => {
+      if (this.isRunning) {
+        console.log('VMC_DEMO_AUTO_STOP');
+        this.stopSession();
+      }
+    }, 39000);
+  },
+
+  toggleCoachTools() {
+    this.coachToolsOpen = !this.coachToolsOpen;
+    this.coachToolsButtonText = this.coachToolsOpen ? "实时" : "场景";
+  },
+
+  toggleTimelineReview() {
+    this.timelineReviewOpen = !this.timelineReviewOpen;
+    this.timelineViewButtonText = this.timelineReviewOpen ? "时间线" : "复盘";
+  },
+
+  setReviewPanel(name) {
+    if (name !== 'history') this.resetHistoryClear();
+    this.showReviewPanelSync = name === 'sync';
+    this.showReviewPanelHistory = name === 'history';
+    this.showReviewPanelDiagnostic = name === 'diagnostic';
+    this.showReviewPanelPrivacy = name === 'privacy';
+    const moreActive = name === 'diagnostic' || name === 'privacy';
+    this.reviewSyncTabBg = name === 'sync' ? '#22312D' : '#FFFFFF';
+    this.reviewSyncTabColor = name === 'sync' ? '#FFFFFF' : '#5F6F69';
+    this.reviewHistoryTabBg = name === 'history' ? '#22312D' : '#FFFFFF';
+    this.reviewHistoryTabColor = name === 'history' ? '#FFFFFF' : '#5F6F69';
+    this.reviewMoreTabBg = moreActive ? '#22312D' : '#FFFFFF';
+    this.reviewMoreTabColor = moreActive ? '#FFFFFF' : '#5F6F69';
+    this.moreDeviceTabBg = name === 'diagnostic' ? '#DFF6EE' : '#FFFFFF';
+    this.moreDeviceTabColor = name === 'diagnostic' ? '#16755A' : '#5F6F69';
+    this.morePrivacyTabBg = name === 'privacy' ? '#EAF5FF' : '#FFFFFF';
+    this.morePrivacyTabColor = name === 'privacy' ? '#25658B' : '#5F6F69';
+    this.updateMotionChannels();
+  },
+
+  showSyncPanel() { this.setReviewPanel('sync'); },
+  showHistoryPanel() { this.setReviewPanel('history'); },
+  showDiagnosticPanel() { this.setReviewPanel('diagnostic'); },
+  showPrivacyPanel() { this.setReviewPanel('privacy'); },
+
+  resetHistoryClear() {
+    if (historyClearTimer) clearTimeout(historyClearTimer);
+    historyClearTimer = null;
+    if (this.historyClearBusy) return;
+    this.historyClearArmed = false;
+    this.historyClearButtonText = '清空';
+    this.historyClearButtonBg = '#E3F5EE';
+    this.historyClearButtonColor = '#16755A';
+  },
+
+  setSceneSelection(sceneId) {
+    const selectedBg = '#DFF6EE';
+    const selectedColor = '#16755A';
+    const idleBg = '#F0F5F2';
+    const idleColor = '#42514B';
+    const pairs = [
+      ['Mixed', 'mixed_workout'],
+      ['Running', 'running'],
+      ['Fatigue', 'fatigue_running'],
+      ['Jump', 'jump_rope'],
+      ['Static', 'static'],
+      ['Real', 'real_device'],
+    ];
+    pairs.forEach((pair) => {
+      this[`scene${pair[0]}Bg`] = pair[1] === sceneId ? selectedBg : idleBg;
+      this[`scene${pair[0]}Color`] = pair[1] === sceneId ? selectedColor : idleColor;
+    });
+  },
+
+  setProcessingState(key, detail) {
+    const view = processingStateView(key, detail);
+    this.processingStateKey = view.key;
+    this.processingStateText = view.text;
+    this.processingStateDetail = view.detail;
+    this.processingStateColor = view.color;
+    this.updateMotionChannels();
+  },
+
+  applyMotionFrame(frame) {
+    const safe = frame || {};
+    const assignNumber = (sourceKey, targetKey, fallback) => {
+      if (!Object.prototype.hasOwnProperty.call(safe, sourceKey)) return;
+      const value = Number(safe[sourceKey]);
+      const next = Number.isFinite(value) ? value : fallback;
+      if (this[targetKey] !== next) this[targetKey] = next;
+    };
+    assignNumber('pulseScale', 'motionPulseScale', 1);
+    assignNumber('pulseOpacity', 'motionPulseOpacity', 0.56);
+    assignNumber('buddyBreathScale', 'buddyBreathScale', 1);
+    assignNumber('startRingScale', 'startRingScale', 0.72);
+    assignNumber('startRingOpacity', 'startRingOpacity', 0);
+    assignNumber('startButtonScale', 'startButtonScale', 1);
+    assignNumber('startButtonOpacity', 'startButtonOpacity', 1);
+    assignNumber('baselineDot1Y', 'baselineDot1Y', 0);
+    assignNumber('baselineDot2Y', 'baselineDot2Y', 0);
+    assignNumber('baselineDot3Y', 'baselineDot3Y', 0);
+    assignNumber('baselineDot1Opacity', 'baselineDot1Opacity', 0);
+    assignNumber('baselineDot2Opacity', 'baselineDot2Opacity', 0);
+    assignNumber('baselineDot3Opacity', 'baselineDot3Opacity', 0);
+    assignNumber('activityScale', 'activityScale', 1);
+    assignNumber('activityOpacity', 'activityOpacity', 1);
+    assignNumber('heartScale', 'heartScale', 1);
+    assignNumber('riskTranslateX', 'riskTranslateX', 0);
+    assignNumber('goalStarsScale', 'goalStarsScale', 0.72);
+    assignNumber('goalStar1X', 'goalStar1X', 0);
+    assignNumber('goalStar1Y', 'goalStar1Y', 4);
+    assignNumber('goalStar2X', 'goalStar2X', 0);
+    assignNumber('goalStar2Y', 'goalStar2Y', 4);
+    assignNumber('goalStar3X', 'goalStar3X', 0);
+    assignNumber('goalStar3Y', 'goalStar3Y', 4);
+    assignNumber('goalStar1Opacity', 'goalStar1Opacity', 0);
+    assignNumber('goalStar2Opacity', 'goalStar2Opacity', 0);
+    assignNumber('goalStar3Opacity', 'goalStar3Opacity', 0);
+    assignNumber('goalMessageOpacity', 'goalMessageOpacity', 0);
+    assignNumber('preciseStampScale', 'preciseStampScale', 1);
+    assignNumber('preciseStampOpacity', 'preciseStampOpacity', this.preciseReviewReady ? 1 : 0);
+    assignNumber('dot1Opacity', 'syncDot1Opacity', 1);
+    assignNumber('dot2Opacity', 'syncDot2Opacity', 0.34);
+    assignNumber('dot3Opacity', 'syncDot3Opacity', 0.34);
+  },
+
+  updateMotionChannels() {
+    if (!motionFx || !this.pageVisible || !this.motionEffectsEnabled) return;
+    const pageIndex = this.pageState ? this.pageState.index : -1;
+    const onHome = pageIndex === 0;
+    const onSync = pageIndex === 3 && this.showReviewPanelSync;
+    const bpm = lastSample && lastSample.heartRate ? lastSample.heartRate : 0;
+    motionFx.setHeartRate(bpm);
+    motionFx.setChannels({
+      breathe: onHome && !this.isRunning,
+      baseline: onHome && this.isRunning && this.baselineActive,
+      sync: onSync && this.processingStateKey === PROCESSING_STATES.AWAITING_PRECISE,
+      heart: onHome && this.isRunning && bpm > 0,
+    });
+  },
+
+  triggerMotionEffect(name) {
+    if (!motionFx || !motionFx.isRunning() || !this.pageVisible) return false;
+    const pageIndex = this.pageState ? this.pageState.index : -1;
+    if ((name === 'start' || name === 'activity' || name === 'goal') && pageIndex !== 0) return false;
+    if (name === 'risk' && pageIndex !== 0 && pageIndex !== 1) return false;
+    if (name === 'precise' && (pageIndex !== 3 || !this.showReviewPanelSync)) return false;
+    if (name === 'start') return motionFx.triggerStartRing();
+    if (name === 'activity') return motionFx.triggerActivityPop(220);
+    if (name === 'risk') return motionFx.triggerRiskShake();
+    if (name === 'goal') return motionFx.triggerGoalStars();
+    if (name === 'precise') return motionFx.triggerPreciseStamp();
+    return false;
+  },
+
+  refreshMotionEffects() {
+    if (!motionFx) motionFx = new MotionFxController();
+    const shouldRun = Boolean(this.pageVisible && this.motionEffectsEnabled && !this.animationPowerSave);
+    if (!shouldRun) {
+      motionFx.pause();
+      this.motionEffectsPaused = true;
+      this.applyMotionFrame(motionNeutralFrame(this.preciseReviewReady));
+      this.motionPolicyText = this.animationPowerSave
+        ? "低电量省电"
+        : (this.motionEffectsEnabled ? "动效已暂停" : "动效已关闭");
+      return;
+    }
+    this.motionEffectsPaused = false;
+    this.motionPolicyText = "轻量动效";
+    if (!motionFx.isRunning()) {
+      motionFx.start((frame) => this.applyMotionFrame(frame));
+      motionFx.setPreciseVisible(this.preciseReviewReady);
+    }
+    this.updateMotionChannels();
+  },
+
+  toggleMotionEffects() {
+    this.motionEffectsEnabled = !this.motionEffectsEnabled;
+    this.motionEffectButtonText = this.motionEffectsEnabled ? "暂停动效" : "恢复动效";
+    this.refreshMotionEffects();
+  },
+
+  refreshBatteryPolicy() {
+    const policyGeneration = ++batteryPolicyGeneration;
+    if (!battery || !battery.getStatus) {
+      if (pageDisposing || policyGeneration !== batteryPolicyGeneration) return;
+      this.batteryLevelText = "电量未知";
+      this.animationPowerSave = false;
+      this.motionPolicyDetail = "电量接口不可用；页面隐藏时仍会暂停持续动效。";
+      this.refreshMotionEffects();
+      return;
+    }
+    try {
+      battery.getStatus({
+        success: (data) => {
+          if (pageDisposing || policyGeneration !== batteryPolicyGeneration) return;
+          const rawLevel = Number(data && data.level);
+          const level = Number.isFinite(rawLevel) ? Math.max(0, Math.min(1, rawLevel > 1 ? rawLevel / 100 : rawLevel)) : null;
+          const charging = Boolean(data && data.charging);
+          this.batteryLevelText = level === null ? "电量未知" : Math.round(level * 100) + "%";
+          this.animationPowerSave = level !== null && level <= 0.20 && !charging;
+          this.motionPolicyDetail = this.animationPowerSave
+            ? "电量 " + this.batteryLevelText + " 且未充电：已暂停持续动效。"
+            : "电量 " + this.batteryLevelText + (charging ? " · 充电中" : "") + "；页面隐藏时暂停持续动效。";
+          this.refreshMotionEffects();
+        },
+        fail: () => {
+          if (pageDisposing || policyGeneration !== batteryPolicyGeneration) return;
+          this.batteryLevelText = "电量未知";
+          this.animationPowerSave = false;
+          this.motionPolicyDetail = "电量读取失败；页面隐藏时仍会暂停持续动效。";
+          this.refreshMotionEffects();
+        },
+        complete: () => {},
+      });
+    } catch (e) {
+      if (pageDisposing || policyGeneration !== batteryPolicyGeneration) return;
+      this.batteryLevelText = "电量未知";
+      this.animationPowerSave = false;
+      this.motionPolicyDetail = "电量读取异常；页面隐藏时仍会暂停持续动效。";
+      this.refreshMotionEffects();
+    }
+  },
+
+  handlePhoneMessage(payload) {
+    const acceptance = preciseResultAcceptance({
+      isRunning: this.isRunning,
+      processingStateKey: this.processingStateKey,
+      hasPendingRecord: Boolean(this.latestSession()),
+    });
+    if (!acceptance.allowed) {
+      console.log('VMC_PRECISE_RESULT_IGNORED reason=' + acceptance.reason);
+      return false;
+    }
+    const inspected = inspectPreciseResult(payload);
+    if (inspected.status === 'degraded') {
+      this.preciseReviewReady = false;
+      this.preciseReviewText = "手机结果为降级模型，未作为精确复盘";
+      this.syncFeedbackText = '需重试';
+      if (motionFx) motionFx.setPreciseVisible(false);
+      this.preciseStampScale = 1;
+      this.preciseStampOpacity = 0;
+      this.setProcessingState(PROCESSING_STATES.PENDING_SYNC, this.preciseReviewText);
+      this.exportStatusText = "手机结果为降级模型";
+      console.log('VMC_PRECISE_RESULT_IGNORED reason=incomplete_scale_set');
+      return false;
+    }
+    const precise = inspected.result;
+    if (!precise) {
+      console.log('VMC_PRECISE_RESULT_IGNORED reason=missing_precise_result');
+      return false;
+    }
+    this.preciseReviewReady = true;
+    this.preciseReviewText = "手机精确结果已确认";
+    this.syncFeedbackText = '已回填';
+    this.setProcessingState(PROCESSING_STATES.PHONE_PRECISE);
+    this.preciseStampScale = 0.72;
+    this.preciseStampOpacity = 0;
+    if (!this.triggerMotionEffect('precise')) {
+      if (motionFx) motionFx.setPreciseVisible(true);
+      this.preciseStampScale = 1;
+      this.preciseStampOpacity = 1;
+    }
+    const patch = {
+      aiSummaryTitle: "手机精确复盘",
+      aiSummarySource: "手机精算",
+    };
+    if (precise.totalSec !== null) {
+      patch.summaryTotal = formatSec(precise.totalSec);
+      this.exportTotalText = formatSec(precise.totalSec);
+    }
+    if (precise.activeSec !== null) patch.summaryActive = formatSec(precise.activeSec);
+    if (precise.segmentCount !== null) {
+      patch.summarySegments = String(Math.round(precise.segmentCount));
+      this.exportSegmentText = String(Math.round(precise.segmentCount));
+    }
+    if (precise.riskCount !== null) {
+      patch.summaryRisk = precise.riskCount > 0 ? Math.round(precise.riskCount) + " 条提醒" : "无风险";
+      this.exportRiskText = String(Math.round(precise.riskCount));
+    }
+    if (precise.segments) {
+      patch.timelineRows = segmentRows(precise.segments);
+      patch.timelineEmpty = precise.segments.length === 0;
+    }
+    if (precise.aiSummary) patch.aiSummaryText = compactWatchSummary(precise.aiSummary);
+    patchLive(this, patch);
+    this.exportStatusText = "精确结果已回填";
+    console.log('VMC_PRECISE_RESULT_APPLIED segments=' + (precise.segmentCount === null ? 'unchanged' : precise.segmentCount));
+    return true;
+  },
+
+  startHealthProvider() {
+    if (!healthProvider) {
+      healthProvider = new HealthProvider(
+        (sample) => this.applyHealthSample(sample),
+        (err) => this.applyHealthError(err),
+      );
+    }
+    try {
+      healthProvider.start();
+      this.serviceHealthText = '订阅中';
+    } catch (e) {
+      this.serviceHealthText = 'Mock 兜底';
+      console.log(`service.health unavailable: ${e.message}`);
+    }
+  },
+
+  applyHealthSample(sample) {
+    if (!sample || !sample.ok) return;
+    if (realProvider) realProvider.updateHealth(sample);
+    if (sample.dataType === DATA_TYPES.HEART_RATE) {
+      this.serviceHealthText = `HR ${Math.round(sample.value)}`;
+    } else if (sample.dataType === DATA_TYPES.SPO2) {
+      this.serviceHealthText = `SpO₂ ${Math.round(sample.value)}%`;
+    } else if (sample.dataType === DATA_TYPES.STRESS) {
+      this.serviceHealthText = `压力 ${Math.round(sample.value)}`;
+    }
+  },
+
+  applyHealthError(err) {
+    this.serviceHealthText = err && err.unsupported ? 'Mock 兜底' : 'Mock 兜底';
+  },
+
+  applyScene(sceneId, force) {
+    if (this.isRunning && !force) {
+      this.sceneDesc = '请先停止训练';
+      return;
+    }
+    dataProviderMode = 'mock';
+    selectedSceneId = sceneId;
+    this.dataSourceText = '演示';
+    const scene = getScenario(sceneId);
+    this.currentSceneName = scene.name;
+    this.sceneDesc = sceneHint(sceneId);
+    this.scenePreviewRows = scenePreviewRows(sceneId);
+    this.setSceneSelection(sceneId);
+    if (mockProvider) mockProvider.selectScene(sceneId);
+  },
+
+  useMixed() { this.applyScene('mixed_workout'); },
+  useRunning() { this.applyScene('running'); },
+  useFatigue() { this.applyScene('fatigue_running'); },
+  useJump() { this.applyScene('jump_rope'); },
+  useStatic() { this.applyScene('static'); },
+  useRealDevice() {
+    if (this.isRunning) {
+      this.sceneDesc = '请先停止训练';
+      return;
+    }
+    dataProviderMode = 'real';
+    selectedSceneId = 'real_device';
+    this.currentSceneName = '真机采集';
+    this.sceneDesc = sceneHint('real_device');
+    this.scenePreviewRows = scenePreviewRows('real_device');
+    this.setSceneSelection('real_device');
+    this.dataSourceText = '真机';
+    if (mockProvider) mockProvider.stop();
+  },
+
+  toggleRunning() {
+    console.log(`VMC_ACTION_TOGGLE running=${this.isRunning}`);
+    if (this.isRunning) this.stopSession();
+    else this.startSession();
+  },
+
+  startSession(startOffsetSec) {
+    if (this.isFinalizing) {
+      console.log('VMC_SESSION_START_BLOCKED reason=finalizing');
+      return false;
+    }
+    const startPermission = getSessionStartPermission(this.isDiagnosing);
+    if (!startPermission.allowed) {
+      patchLive(this, {
+        runStatusText: "设备诊断中",
+        summaryTip: startPermission.message,
+      });
+      console.log('VMC_SESSION_START_BLOCKED reason=device_diagnostics');
+      return false;
+    }
+    if (dataProviderMode === 'real') {
+      if (!realProvider) realProvider = new RealSensorProvider();
+      let capabilities = null;
+      try {
+        capabilities = realProvider.getCapabilities();
+      } catch (e) {
+        capabilities = null;
+      }
+      const realPermission = getRealTrainingPermission(capabilities);
+      if (!realPermission.allowed) {
+        if (mockProvider) mockProvider.stop();
+        realProvider.stop();
+        this.isRunning = false;
+        this.storageStatusText = '未启动';
+        this.dataSourceText = capabilities && capabilities.accelerometer ? 'ACC' : '!';
+        this.sceneDesc = realPermission.message;
+        this.diagnosticButtonText = '检测';
+        this.diagnosticRows = watchDiagnosticRows([
+          {
+            name: '真实 ACC',
+            status: capabilities && capabilities.accelerometer ? '通过' : '失败',
+            detail: capabilities && capabilities.accelerometer ? 'ACC 可用' : 'ACC 不可用',
+          },
+          { name: '真实 GYRO', status: '失败', detail: '公开 JS API 未提供 GYRO' },
+        ]);
+        this.diagnosticSummaryText = realPermission.message;
+        this.diagnosticPassWidth = capabilities && capabilities.accelerometer ? 124 : 18;
+        this.setProcessingState(PROCESSING_STATES.WATCH_SCREENING, realPermission.message);
+        patchLive(this, Object.assign(createInitialLiveState(), {
+          startButtonText: '重试',
+          runStatusText: '完整识别未启动',
+          runMarkerColor: '#F97316',
+          alertStatusText: '不会保存',
+          activityEmoji: '!',
+          activityName: capabilities && capabilities.accelerometer ? '缺少 GYRO' : 'ACC 不可用',
+          activityColor: '#DC2626',
+          accText: capabilities && capabilities.accelerometer ? 'ACC 可用·GYRO 不可用' : 'ACC 不可用',
+          summaryTip: realPermission.message,
+          riskTitle: '真机能力不足',
+          riskMessage: realPermission.message,
+          riskColor: '#DC2626',
+          riskBgColor: '#FEF2F2',
+        }));
+        console.log('VMC_REAL_SENSOR_BLOCKED reason=' + (capabilities && capabilities.reason ? capabilities.reason : 'capability_unavailable'));
+        return false;
+      }
+    }
+    setTrainingScreenOn(true);
+    this.resetHistoryClear();
+    this.coachToolsOpen = false;
+    this.coachToolsButtonText = '场景';
+    this.timelineReviewOpen = false;
+    this.timelineViewButtonText = '复盘';
+    this.cancelAiSummary();
+    if (!engine) engine = new MotionEngine();
+    if (!inferenceRunner || inferenceRunner.engine !== engine) {
+      inferenceRunner = new CooperativeMotionRunner(engine, inferenceSchedule);
+    } else {
+      inferenceRunner.cancel();
+    }
+    if (!mockProvider) mockProvider = new MockSensorProvider();
+    engine.reset();
+    lastResult = null;
+    lastSample = null;
+    sessionStartMs = Date.now();
+    lastAlertAtMs = 0;
+    lastAlertKey = '';
+    trendSamples = [];
+    riskEvents = [];
+    lastTrendSecond = -1;
+    lastRiskEventAtMs = 0;
+    lastRiskEventKey = '';
+    lastSummarySnapshot = null;
+    lastAnimatedActivityKey = '';
+    goalActiveReached = false;
+    this.baselineActive = true;
+    this.goalActiveText = "本次活跃目标 " + GOAL_ACTIVE_SEC + " 秒";
+    this.preciseReviewReady = false;
+    this.preciseReviewText = "尚未收到手机精确结果";
+    this.syncFeedbackText = '训练中';
+    if (motionFx) motionFx.clearTransientEffects(false);
+    this.applyMotionFrame(motionNeutralFrame(false));
+    this.setProcessingState(PROCESSING_STATES.WATCH_SCREENING);
+    this.startHealthProvider();
+    this.isRunning = true;
+    this.updateMotionChannels();
+    this.triggerMotionEffect('start');
+    this.diagnosticButtonText = "训练中不可检测";
+    patchLive(this, Object.assign(createInitialLiveState(), {
+      startButtonText: "停止",
+      runStatusText: "识别中",
+      runMarkerColor: "#22C55E",
+      activityName: "准备中",
+      summaryTip: "正在识别运动片段，强度变化会振动提醒。",
+      riskTitle: "建立基线",
+      riskMessage: "正在收集腕部动作与心率趋势。",
+      riskColor: "#64748B",
+      riskBgColor: "#F1F5F9",
+    }));
+    if (dataProviderMode === 'real') {
+      if (!realProvider) realProvider = new RealSensorProvider();
+      if (mockProvider) mockProvider.stop();
+      this.dataSourceText = '真机';
+      realProvider.start((batch) => this.handleBatch(batch), { interval: 'game' });
+      console.log('VMC_REAL_SENSOR_START');
+    } else {
+      if (!mockProvider) mockProvider = new MockSensorProvider();
+      if (realProvider) realProvider.stop();
+      this.dataSourceText = '演示';
+      mockProvider.start(selectedSceneId, (batch) => this.handleBatch(batch), { startOffsetSec: startOffsetSec || 0 });
+    }
+    return true;
+  },
+
+  stopSession() {
+    if (!this.isRunning) {
+      console.log('VMC_SESSION_STOP_IGNORED reason=not_running');
+      return false;
+    }
+    const stopStarted = Date.now();
+    this.isRunning = false;
+    this.baselineActive = false;
+    if (motionFx) motionFx.clearTransientEffects(false);
+    this.applyMotionFrame(motionNeutralFrame(false));
+    this.updateMotionChannels();
+    setTrainingScreenOn(false);
+    if (inferenceRunner) inferenceRunner.cancel();
+    this.diagnosticButtonText = "检测";
+    // Prevent a previous carousel's delayed auto-stop/scene switch from
+    // affecting a later session started after the user stopped manually.
+    clearDemoSessionTimers();
+    if (mockProvider) mockProvider.stop();
+    if (realProvider) realProvider.stop();
+    if (healthProvider) healthProvider.stop();
+    const elapsed = secFromNow(lastSample);
+
+    if (!lastSample || !lastResult || lastResult.warmupFraction < 1 || elapsed < 3) {
+      this.storageStatusText = "未保存";
+      patchLive(this, {
+        startButtonText: "开始",
+        runStatusText: "训练时间过短",
+        runMarkerColor: "#94A3B8",
+        summaryTip: "至少训练 3 秒后再停止，才会生成有效记录。",
+      });
+      this.setProcessingState(PROCESSING_STATES.WATCH_SCREENING, "训练过短，未生成待同步记录");
+      this.applyExportPreview();
+      console.log("VMC_SESSION_DISCARD elapsed=" + elapsed);
+      return true;
+    }
+
+    this.isFinalizing = true;
+    this.storageStatusText = '整理中';
+    patchLive(this, {startButtonText:'保存中', runStatusText:'训练已停止', runMarkerColor:'#94A3B8'});
+    const token = ++stopGeneration;
+    const started = stopStarted;
+    const result = lastResult, sample = lastSample, risks = riskEvents, trends = trendSamples;
+    const record = {sceneId:selectedSceneId, sceneName:this.currentSceneName, segments:result.segments, risks:risks.slice(-8)};
+    const active = () => !pageDisposing && token === stopGeneration;
+    let summary, review, settled = false;
+    const stage = (name, fn) => () => {
+      const at = Date.now(); fn();
+      console.warn('VMC_STOP_STAGE name=' + name + ' ms=' + (Date.now()-at));
+    };
+    stopWork.run([
+      stage('summary', () => {
+        summary = buildSummary(result, elapsed, sample);
+        summary.riskCount = risks.length;
+        summary.riskLabel = risks.length ? risks[risks.length-1].title : '无风险';
+        record.summary = summary;
+      }),
+      stage('charts', () => {
+        summary.activityShares = activityShareRowsFromSummary(summary);
+        summary.intensityTrend = intensityTrendRowsFromSamples(trends);
+      }),
+      stage('review', () => { if (active()) review = this.reviewPatch(summary, true); }),
+      stage('metadata', () => {
+        if (!active()) return;
+        this.preciseReviewReady = false;
+        this.preciseReviewText = '尚未收到手机精确结果';
+        this.syncFeedbackText = '待回填';
+        this.cancelAiSummary();
+        this.setProcessingState(PROCESSING_STATES.PENDING_SYNC);
+      }),
+      stage('view', () => {
+        if (!active()) return;
+        patchLive(this, Object.assign({
+          summaryTotal:formatSec(summary.totalSec), summaryActive:formatSec(summary.activeSec),
+          summarySegments:String(summary.segmentCount), intensityTrendRows:summary.intensityTrend,
+          summaryTip:'正在保存：活跃 ' + formatSec(summary.activeSec) + '，' + summary.segmentCount + ' 个片段。',
+        }, review));
+      }),
+      stage('save', () => {
+        saveSession(record, (persisted) => {
+          if (settled) return;
+          settled = true;
+          console.warn('VMC_SESSION_PERSISTED elapsed_ms=' + (Date.now()-started) + ' persisted=' + persisted);
+          if (!active()) return;
+          this.isFinalizing = false;
+          this.applyHistory(listSessions());
+          this.storageStatusText = persisted ? listSessions().length + ' 次记录' : '仅内存保存';
+          patchLive(this, {startButtonText:'开始', runStatusText:persisted ? '训练已保存' : '仅内存保存',
+            summaryTip:(persisted ? '已保存：活跃 ' : '仅内存：活跃 ') + formatSec(summary.activeSec) + '，自动识别 ' + summary.segmentCount + ' 个片段。'});
+          console.log('VMC_SESSION_STOP total=' + summary.totalSec + ' active=' + summary.activeSec + ' segments=' + summary.segmentCount);
+          console.warn('VMC_SESSION_FINALIZED elapsed_ms=' + (Date.now()-started) + ' persisted=' + persisted);
+        });
+      }),
+    ], (error) => {
+      console.warn('VMC_SESSION_FINALIZE_ERROR ' + error);
+      if (active()) {
+        this.isFinalizing = false;
+        this.storageStatusText = '整理失败';
+        patchLive(this, {startButtonText:'开始', runStatusText:'未保存'});
+      }
+    });
+    console.warn('VMC_SESSION_STOP_ACCEPTED');
+    return true;
+  },
+
+  resetSession() {
+    if (this.isFinalizing) return false;
+    clearDemoSessionTimers();
+    setTrainingScreenOn(false);
+    if (inferenceRunner) inferenceRunner.cancel();
+    if (mockProvider) mockProvider.stop();
+    if (realProvider) realProvider.stop();
+    if (healthProvider) healthProvider.stop();
+    if (engine) engine.reset();
+    lastResult = null;
+    lastSample = null;
+    sessionStartMs = 0;
+    lastAlertAtMs = 0;
+    lastAlertKey = "";
+    trendSamples = [];
+    riskEvents = [];
+    lastTrendSecond = -1;
+    lastRiskEventAtMs = 0;
+    lastRiskEventKey = "";
+    lastSummarySnapshot = null;
+    lastAnimatedActivityKey = '';
+    goalActiveReached = false;
+    this.isRunning = false;
+    this.baselineActive = false;
+    this.goalActiveText = "本次活跃目标 " + GOAL_ACTIVE_SEC + " 秒";
+    this.preciseReviewReady = false;
+    this.preciseReviewText = "尚未收到手机精确结果";
+    this.syncFeedbackText = '待回填';
+    this.cancelAiSummary();
+    if (motionFx) {
+      motionFx.setHeartRate(0);
+      motionFx.clearTransientEffects(false);
+    }
+    this.applyMotionFrame(motionNeutralFrame(false));
+    this.updateMotionChannels();
+    this.setProcessingState(PROCESSING_STATES.WATCH_SCREENING, "开始后在表端实时初筛");
+    patchLive(this, createInitialLiveState());
+  },
+
+  loadSessionHistory() {
+    this.storageStatusText = '读取中';
+    loadSessions((items) => {
+      if (!pageDisposing) this.applyHistory(items);
+    });
+  },
+
+  applyHistory(items) {
+    const rows = historyRowsFromSessions(items || listSessions());
+    this.historyRows = rows;
+    this.historyEmpty = rows.length === 0;
+    if (this.historyEmpty && !this.historyClearBusy) this.resetHistoryClear();
+    this.storageStatusText = rows.length > 0 ? `${rows.length} 次记录` : '本地存储';
+    this.applyExportPreview();
+    console.log(`VMC_HISTORY_RENDER count=${rows.length}`);
+  },
+
+  clearHistory() {
+    if (this.isFinalizing) return false;
+    const action = historyClearAction({
+      hasItems: !this.historyEmpty,
+      armed: this.historyClearArmed,
+      busy: this.historyClearBusy,
+    });
+    if (action === HISTORY_CLEAR_ACTIONS.EMPTY || action === HISTORY_CLEAR_ACTIONS.BUSY) return false;
+    if (action === HISTORY_CLEAR_ACTIONS.ARM) {
+      this.historyClearArmed = true;
+      this.historyClearButtonText = '再按';
+      this.historyClearButtonBg = '#FFF0F0';
+      this.historyClearButtonColor = '#B53A3A';
+      if (historyClearTimer) clearTimeout(historyClearTimer);
+      historyClearTimer = setTimeout(() => {
+        historyClearTimer = null;
+        if (!pageDisposing) this.resetHistoryClear();
+      }, 2600);
+      return false;
+    }
+    if (historyClearTimer) clearTimeout(historyClearTimer);
+    historyClearTimer = null;
+    this.historyClearArmed = false;
+    this.historyClearBusy = true;
+    this.historyClearButtonText = '…';
+    clearSessions((items) => {
+      if (pageDisposing) return;
+      this.historyClearBusy = false;
+      this.resetHistoryClear();
+      this.applyHistory(items);
+      this.storageStatusText = '已清空';
+      this.preciseReviewReady = false;
+      this.preciseReviewText = "尚未收到手机精确结果";
+      if (motionFx) motionFx.setPreciseVisible(false);
+      this.preciseStampScale = 1;
+      this.preciseStampOpacity = 0;
+      if (!this.isRunning) this.setProcessingState(PROCESSING_STATES.WATCH_SCREENING, "暂无待同步记录");
+    });
+    return true;
+  },
+
+  latestSession() {
+    const items = listSessions();
+    return items && items.length ? items[0] : null;
+  },
+
+  applyExportPreview() {
+    const latest = this.latestSession();
+    if (!latest) {
+      this.exportStatusText = '暂无记录';
+      this.exportPreviewText = '停止训练后可同步摘要到手机端。';
+      this.exportTotalText = '--';
+      this.exportSegmentText = '--';
+      this.exportRiskText = '--';
+      if (!this.isRunning && !this.syncDiagnosing && !this.syncSending) this.syncFeedbackText = '无记录';
+      return;
+    }
+    const summary = latest.summary || {};
+    this.exportStatusText = '摘要已就绪';
+    this.exportPreviewText = buildExportPreview(latest);
+    this.exportTotalText = formatSec(summary.totalSec || 0);
+    this.exportSegmentText = String(summary.segmentCount || 0);
+    this.exportRiskText = String(summary.riskCount || 0);
+    if (!this.isRunning
+      && !this.syncDiagnosing
+      && !this.syncSending
+      && !this.preciseReviewReady
+      && this.processingStateKey !== PROCESSING_STATES.AWAITING_PRECISE) {
+      this.syncFeedbackText = '待回填';
+    }
+    if (!this.isRunning && this.processingStateKey === PROCESSING_STATES.WATCH_SCREENING) {
+      this.setProcessingState(PROCESSING_STATES.PENDING_SYNC);
+    }
+  },
+
+  beginSyncOperation(action) {
+    const permission = syncActionPermission({
+      action,
+      busy: this.isFinalizing || this.syncDiagnosing || this.syncSending,
+      isRunning: this.isRunning,
+      hasRecord: Boolean(this.latestSession()),
+    });
+    if (!permission.allowed) {
+      this.syncFeedbackText = permission.feedback;
+      return 0;
+    }
+    const generation = ++syncOperationGeneration;
+    this.syncDiagnosing = action === 'diagnose';
+    this.syncSending = action === 'send';
+    this.syncDiagnoseButtonText = this.syncDiagnosing ? '…' : '检测';
+    this.syncSendButtonText = this.syncSending ? '…' : '发送';
+    this.syncDiagnoseOpacity = 0.56;
+    this.syncSendOpacity = 0.56;
+    this.syncFeedbackText = action === 'send' ? '发送中' : '检测中';
+    if (syncOperationTimer) clearTimeout(syncOperationTimer);
+    syncOperationTimer = setTimeout(() => {
+      if (pageDisposing || generation !== syncOperationGeneration) return;
+      syncOperationGeneration += 1;
+      syncOperationTimer = null;
+      this.syncDiagnosing = false;
+      this.syncSending = false;
+      this.syncDiagnoseButtonText = '检测';
+      this.syncSendButtonText = '发送';
+      this.syncDiagnoseOpacity = 1;
+      this.syncSendOpacity = 1;
+      this.syncFeedbackText = '可重试';
+    }, 5200);
+    return generation;
+  },
+
+  finishSyncOperation(generation) {
+    if (!generation || generation !== syncOperationGeneration) return false;
+    if (syncOperationTimer) clearTimeout(syncOperationTimer);
+    syncOperationTimer = null;
+    this.syncDiagnosing = false;
+    this.syncSending = false;
+    this.syncDiagnoseButtonText = '检测';
+    this.syncSendButtonText = '发送';
+    this.syncDiagnoseOpacity = 1;
+    this.syncSendOpacity = 1;
+    return true;
+  },
+
+  diagnoseSync() {
+    const generation = this.beginSyncOperation('diagnose');
+    if (!generation) return false;
+    this.syncStatusText = '检测中';
+    diagnosePhoneLink((res) => {
+      if (!this.finishSyncOperation(generation)) return;
+      this.syncStatusText = res && res.statusText ? res.statusText : '未连接';
+      this.syncFeedbackText = this.syncStatusText;
+      console.log(`VMC_SYNC_DIAG ok=${res && res.ok} detail=${res && res.detail}`);
+    });
+    return true;
+  },
+
+  sendLatestToPhone() {
+    const latest = this.latestSession();
+    const generation = this.beginSyncOperation('send');
+    if (!generation) return false;
+    const now = Date.now();
+    if (now - lastSyncSendAtMs < 1200) {
+      this.finishSyncOperation(generation);
+      this.syncFeedbackText = '请稍候';
+      return false;
+    }
+    lastSyncSendAtMs = now;
+    this.exportStatusText = '发送中';
+    sendSessionToPhone(latest, (res) => {
+      if (!this.finishSyncOperation(generation)) return;
+      this.exportStatusText = res && res.statusText ? res.statusText : '发送完成';
+      this.syncFeedbackText = res && res.ok ? '等待手机' : (res && res.statusText ? res.statusText : '可重试');
+      this.exportPreviewText = buildExportPreview(latest);
+      if (res && res.ok) {
+        this.preciseReviewReady = false;
+        this.preciseReviewText = "已发往手机，等待精确结果";
+        if (motionFx) motionFx.setPreciseVisible(false);
+        this.preciseStampScale = 1;
+        this.preciseStampOpacity = 0;
+        this.setProcessingState(PROCESSING_STATES.AWAITING_PRECISE);
+      } else {
+        this.setProcessingState(PROCESSING_STATES.PENDING_SYNC, "发送未完成，可稍后重试");
+      }
+      console.log(`VMC_SYNC_SEND ok=${res && res.ok} detail=${res && res.detail}`);
+    });
+    return true;
+  },
+
+  runDiagnostics() {
+    const permission = getDiagnosticStartPermission(this.isRunning, this.isDiagnosing);
+    if (!permission.allowed) {
+      this.diagnosticRows = watchDiagnosticRows([{
+        name: '真机诊断',
+        status: '边界',
+        detail: permission.message,
+      }]);
+      this.diagnosticSummaryText = permission.message;
+      this.diagnosticPassWidth = 18;
+      this.diagnosticButtonText = this.isRunning ? '请先停止训练' : '检测中';
+      console.log(`VMC_DEVICE_DIAG_BLOCKED running=${this.isRunning} diagnosing=${this.isDiagnosing}`);
+      return false;
+    }
+    this.isDiagnosing = true;
+    const generation = ++diagnosticGeneration;
+    this.diagnosticButtonText = '检测中';
+    this.diagnosticRows = watchDiagnosticRows([{ name: '真机诊断', status: '检测中', detail: '正在读取接口' }]);
+    this.diagnosticSummaryText = '检测中';
+    this.diagnosticPassWidth = 32;
+    if (diagnosticTimer) clearTimeout(diagnosticTimer);
+    diagnosticTimer = setTimeout(() => {
+      if (pageDisposing || generation !== diagnosticGeneration) return;
+      diagnosticGeneration += 1;
+      diagnosticTimer = null;
+      this.isDiagnosing = false;
+      this.diagnosticButtonText = '重试';
+      this.diagnosticSummaryText = '检测超时';
+      this.diagnosticPassWidth = 18;
+    }, 7000);
+    try {
+      runDeviceDiagnostics((rows) => {
+        if (pageDisposing || generation !== diagnosticGeneration) return;
+        if (diagnosticTimer) clearTimeout(diagnosticTimer);
+        diagnosticTimer = null;
+        this.isDiagnosing = false;
+        this.diagnosticButtonText = '重新检测';
+        const watchRows = watchDiagnosticRows(rows || []);
+        const overview = diagnosticOverview(watchRows);
+        this.diagnosticRows = watchRows;
+        this.diagnosticSummaryText = overview.text;
+        this.diagnosticPassWidth = overview.width;
+        console.log(`VMC_DEVICE_DIAG count=${this.diagnosticRows.length}`);
+      });
+      return true;
+    } catch (e) {
+      if (generation !== diagnosticGeneration) return false;
+      if (diagnosticTimer) clearTimeout(diagnosticTimer);
+      diagnosticTimer = null;
+      this.isDiagnosing = false;
+      this.diagnosticButtonText = '重新检测';
+      this.diagnosticRows = watchDiagnosticRows([{
+        name: '真机诊断',
+        status: '失败',
+        detail: e && e.message ? e.message : String(e),
+      }]);
+      this.diagnosticSummaryText = '诊断启动失败';
+      this.diagnosticPassWidth = 18;
+      console.log(`VMC_DEVICE_DIAG_START_FAIL error=${e && e.message ? e.message : e}`);
+      return false;
+    }
+  },
+
+  aiSummaryPayload(summary, activityRows) {
+    const live = liveUpdates.current(this) || createInitialLiveState();
+    return {
+      summary: summary || lastSummarySnapshot || {},
+      activityShareRows: activityRows || live.activityShareRows || [],
+      riskEvents,
+      sceneName: this.currentSceneName,
+    };
+  },
+
+  cancelAiSummary() {
+    aiSummaryGeneration += 1;
+    if (aiSummaryTimer) clearTimeout(aiSummaryTimer);
+    aiSummaryTimer = null;
+    this.aiSummaryBusy = false;
+  },
+
+  refreshAiSummary() {
+    if (this.aiSummaryBusy) return false;
+    this.aiSummaryBusy = true;
+    const generation = ++aiSummaryGeneration;
+    patchLive(this, {
+      aiSummaryTitle: "生成中",
+      aiSummaryButtonText: "请稍候",
+    });
+    if (aiSummaryTimer) clearTimeout(aiSummaryTimer);
+    aiSummaryTimer = setTimeout(() => {
+      if (pageDisposing || generation !== aiSummaryGeneration) return;
+      aiSummaryTimer = null;
+      this.aiSummaryBusy = false;
+      patchLive(this, { aiSummaryTitle: '稍后再试', aiSummaryButtonText: '重试' });
+    }, 6500);
+    requestAiSummary(this.aiSummaryPayload(lastSummarySnapshot), (res) => {
+      if (pageDisposing || generation !== aiSummaryGeneration) return;
+      if (aiSummaryTimer) clearTimeout(aiSummaryTimer);
+      aiSummaryTimer = null;
+      this.aiSummaryBusy = false;
+      const source = res && res.source ? res.source : "本地总结";
+      const title = res && res.ok ? "AI 建议" : "本地建议";
+      const text = res && res.text ? res.text : buildLocalAiSummary(this.aiSummaryPayload(lastSummarySnapshot));
+      patchLive(this, {
+        aiSummarySource: source,
+        aiSummaryTitle: title,
+        aiSummaryText: compactWatchSummary(text),
+        aiSummaryButtonText: "更新建议",
+      });
+      if (res && res.error) console.log("VMC_AI_SUMMARY_FALLBACK error=" + res.error);
+      else console.log("VMC_AI_SUMMARY source=" + source);
+    });
+    return true;
+  },
+
+  recordTrend(result, sample, elapsed, zone) {
+    const sec = Math.floor(elapsed || 0);
+    if (sec !== lastTrendSecond) {
+      lastTrendSecond = sec;
+      const features = result && result.latestWindow && result.latestWindow.features ? result.latestWindow.features : {};
+      trendSamples.push({
+        elapsedSec: sec,
+        bpm: sample && sample.heartRate ? Math.round(sample.heartRate) : 0,
+        stepCount: sample && sample.stepCount ? sample.stepCount : 0,
+        accStd: features.accStd || 0,
+        classIdx: result ? result.classIdx : CLASS_BG,
+        color: zone && zone.color ? zone.color : "#E5E7EB",
+        zoneLabel: zone && zone.label ? zone.label : "--",
+      });
+      if (trendSamples.length > 120) trendSamples.shift();
+    }
+    // Keep raw samples for risk analysis and the saved summary. The watch
+    // does not display this chart during training, so do not rebuild it here.
+  },
+
+  riskPatch(risk, elapsed) {
+    if (!risk) return {};
+    let alertStatusText = "提醒开启";
+    if (risk.level === "danger") alertStatusText = "风险提醒";
+    else if (risk.level === "warning") alertStatusText = "强度提醒";
+
+    const shouldRecord = risk.key && (risk.level === "danger" || risk.key === "fatigue_running");
+    const now = Date.now();
+    if (shouldRecord && (risk.key !== lastRiskEventKey || now - lastRiskEventAtMs > 12000)) {
+      lastRiskEventKey = risk.key;
+      lastRiskEventAtMs = now;
+      riskEvents.push({
+        time: formatSec(elapsed),
+        key: risk.key,
+        title: risk.title,
+        message: risk.message,
+        color: risk.color,
+      });
+      if (riskEvents.length > 8) riskEvents.shift();
+      console.log("VMC_RISK_EVENT key=" + risk.key + " title=" + risk.title + " elapsed=" + formatSec(elapsed));
+    }
+    return {
+      riskTitle: risk.title,
+      riskMessage: risk.message,
+      riskColor: risk.color,
+      riskBgColor: risk.bgColor,
+      alertStatusText,
+      summaryRisk: riskEvents.length > 0 ? riskEvents.length + " 条提醒" : "无风险",
+    };
+  },
+
+  reviewPatch(summary, includeAi) {
+    lastSummarySnapshot = summary;
+    const activityRows = includeAi ? (summary.activityShares || activityShareRowsFromSummary(summary)) : null;
+    const patch = {
+      summaryActiveShare: activeShareText(summary),
+      summaryRisk: riskEvents.length > 0 ? riskEvents.length + " 条提醒" : "无风险",
+    };
+    if (activityRows) patch.activityShareRows = activityRows;
+    const live = liveUpdates.current(this) || createInitialLiveState();
+    if (includeAi && live.aiSummarySource !== "velaclaw") {
+      patch.aiSummaryTitle = "本地建议";
+      patch.aiSummarySource = "本地总结";
+      patch.aiSummaryText = compactWatchSummary(buildLocalAiSummary(this.aiSummaryPayload(summary, activityRows)));
+    }
+    return patch;
+  },
+
+  alertPatch(result, sample, zone, risk) {
+    const alert = pulseWorkoutAlert(result, sample, zone, { now: Date.now(), lastAlertAtMs, lastAlertKey, risk });
+    if (!alert || !alert.triggered) return {};
+    lastAlertAtMs = Date.now();
+    lastAlertKey = alert.key;
+    if (shouldShakeRiskCard(risk, alert)) this.triggerMotionEffect('risk');
+    console.log("VMC_VIBRATE key=" + alert.key + " mode=" + alert.mode + " available=" + alert.available);
+    return {
+      alertStatusText: alert.available === false ? "模拟提醒" : (alert.mode === "long" ? "长振提醒" : "短振提醒"),
+      summaryTip: alert.available === false ? alert.message + "（模拟器未响应振动）" : alert.message,
+    };
+  },
+
+  handleBatch(batch) {
+    if (!this.isRunning || !batch || batch.length === 0 || !engine) return;
+    const receivedAtMs = Date.now();
+    const fallbackStart = receivedAtMs - Math.max(0, batch.length - 1) * SAMPLE_PERIOD_MS;
+    const safeBatch = batch.map((sample, idx) => Object.assign({}, sample || {}, {
+      accX: finiteNumber(sample && sample.accX, 0),
+      accY: finiteNumber(sample && sample.accY, 0),
+      accZ: finiteNumber(sample && sample.accZ, 9.81),
+      gyroX: finiteNumber(sample && sample.gyroX, 0),
+      gyroY: finiteNumber(sample && sample.gyroY, 0),
+      gyroZ: finiteNumber(sample && sample.gyroZ, 0),
+      heartRate: Math.max(0, finiteNumber(sample && sample.heartRate, 0)),
+      spo2: Math.max(0, finiteNumber(sample && sample.spo2, 0)),
+      stress: Math.max(0, finiteNumber(sample && sample.stress, 0)),
+      stepCount: Math.max(0, finiteNumber(sample && sample.stepCount, 0)),
+      timeStamp: finiteNumber(sample && sample.timeStamp, fallbackStart + idx * SAMPLE_PERIOD_MS),
+    }));
+    if (!inferenceRunner || inferenceRunner.engine !== engine) {
+      inferenceRunner = new CooperativeMotionRunner(engine, inferenceSchedule);
+    }
+    inferenceRunner.submit(safeBatch, { receivedAtMs }, (result, processedBatch, meta) => {
+      if (!this.isRunning) return;
+      this.applyInferenceResult(processedBatch, result, meta && meta.startedAtMs);
+    });
+  },
+
+  inferenceViewPatch() {
+    if (!lastResult || !this.pageVisible) return {};
+    // Build only the visible page's rows, including immediately on navigation.
+    // Hidden pages retain widgets but need no sorting, formatting or diffing.
+    if (this.pageState.index === 1) {
+      const rows = probabilityRows(lastResult.smoothedProbs || lastResult.probs);
+      return { coachClassRows: topCoachRows(rows) };
+    } else if (this.pageState.index === 2) {
+      const rows = segmentRows(lastResult.segments);
+      return { timelineRows: rows, timelineEmpty: rows.length === 0 };
+    }
+    return {};
+  },
+
+  applyInferenceResult(safeBatch, result, startedAtMs) {
+    if (!this.isRunning || !safeBatch || safeBatch.length === 0 || !result) return;
+    const batchStarted = Number.isFinite(startedAtMs) ? startedAtMs : Date.now();
+    lastSample = safeBatch[safeBatch.length - 1];
+    const engineMs = (result.classifierMs || 0) + (result.trlMs || 0);
+    lastResult = result;
+    const elapsed = secFromNow(lastSample);
+    const zone = classifyHrZone(lastSample.heartRate);
+    this.recordTrend(result, lastSample, elapsed, zone);
+    const risk = analyzeWorkoutRisk(result, lastSample, zone, trendSamples);
+    const riskUi = this.riskPatch(risk, elapsed);
+    let activityUi;
+    if (result.warmupFraction < 1) {
+      if (!this.baselineActive) {
+        this.baselineActive = true;
+        this.updateMotionChannels();
+      }
+      activityUi = {
+        activityEmoji: "动",
+        activityName: "准备 " + Math.round(result.warmupFraction * 100) + "%",
+        activityColor: "#111111",
+        confidenceText: "--",
+        runStatusText: "建立动作基线",
+        coachTip: "正在学习当前腕部动作，保持自然运动。",
+      };
+    } else {
+      if (this.baselineActive) {
+        this.baselineActive = false;
+        this.updateMotionChannels();
+      }
+      const activityKey = String(result.classIdx);
+      if (activityKey !== lastAnimatedActivityKey) {
+        lastAnimatedActivityKey = activityKey;
+        this.triggerMotionEffect('activity');
+      }
+      activityUi = {
+        activityEmoji: classEmoji(result.classIdx),
+        activityName: result.className,
+        activityColor: result.classIdx === CLASS_BG ? "#111111" : classColor(result.classIdx),
+        confidenceText: pct(result.confidence),
+        runStatusText: result.classIdx === CLASS_BG ? "恢复 / 静止" : "正在运动",
+        coachTip: risk && (risk.level === "warning" || risk.level === "danger") ? risk.message : buildCoachTip(result, lastSample),
+      };
+    }
+    this.updateMotionChannels();
+
+    const alertUi = this.alertPatch(result, lastSample, zone, risk);
+    const summary = buildSummary(result, elapsed, lastSample);
+    if (!goalActiveReached && summary.activeSec >= GOAL_ACTIVE_SEC) {
+      goalActiveReached = true;
+      this.goalActiveText = "本次活跃目标 " + GOAL_ACTIVE_SEC + " 秒 · 已达成";
+      this.triggerMotionEffect('goal');
+    }
+    const reviewUi = this.reviewPatch(summary, false);
+    const uiStarted = Date.now();
+    const live = patchLive(this, Object.assign({
+      elapsedText: formatSec(elapsed),
+      hrText: lastSample.heartRate > 0 ? String(Math.round(lastSample.heartRate)) : "--",
+      stepText: String(Math.round(lastSample.stepCount || 0)),
+      accText: lastSample.accX.toFixed(1) + " / " + lastSample.accY.toFixed(1) + " / " + lastSample.accZ.toFixed(1),
+      zoneText: zone.label,
+      zoneColor: zone.color,
+      zoneWidth: zoneBarWidth(zone.level),
+      summaryTotal: formatSec(summary.totalSec),
+      summaryActive: formatSec(summary.activeSec),
+      summarySegments: String(summary.segmentCount),
+    }, riskUi, activityUi, reviewUi, alertUi, this.inferenceViewPatch()));
+
+    const now = Date.now();
+    if (now - lastProbeLogMs > 1000) {
+      lastProbeLogMs = now;
+      console.log("VMC_DYNAMIC_UI activity=" + live.activityName + " confidence=" + live.confidenceText + " hrText=" + live.hrText + " stepText=" + live.stepText + " accText=" + live.accText + " zoneText=" + live.zoneText + " elapsed=" + live.elapsedText + " engineMs=" + engineMs + " classifierMs=" + (result.classifierMs || 0) + " trlMs=" + (result.trlMs || 0) + " uiMs=" + (now - uiStarted) + " computeMs=" + (now - batchStarted) + " skipped=" + (result.skippedWindows || 0));
+    }
+  },
+};
+</script>
+
+<style>
+.swiper {
+  width: 100%;
+  height: 100%;
+  background-color: #f5f5f5;
+  indicator-color: #d8d8d8;
+  indicator-selected-color: #ff6900;
+  indicator-size: 6px;
+  indicator-right: 8px;
+}
+.demo-page-mark {
+  position: absolute;
+  left: 236px;
+  top: 4px;
+  width: 8px;
+  height: 5px;
+  border-radius: 3px;
+  z-index: 10;
+}
+.demo-run-mark {
+  position: absolute;
+  left: 218px;
+  top: 4px;
+  width: 8px;
+  height: 5px;
+  border-radius: 3px;
+  z-index: 10;
+}
+.nav-next {
+  position: absolute;
+  left: 350px;
+  top: 5px;
+  width: 88px;
+  height: 30px;
+  border-radius: 15px;
+  background-color: #111111;
+  color: #ffffff;
+  font-size: 12px;
+  text-align: center;
+  z-index: 9;
+}
+.global-stop {
+  position: absolute;
+  left: 145px;
+  top: 5px;
+  width: 96px;
+  height: 30px;
+  border-radius: 15px;
+  background-color: #dc2626;
+  color: #ffffff;
+  font-size: 12px;
+  text-align: center;
+  z-index: 11;
+}
+.screen {
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f5f5f5;
+}
+.app-head {
+  width: 400px;
+  height: 44px;
+  margin-top: 40px;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.title-block {
+  width: 250px;
+  height: 44px;
+  flex-direction: column;
+}
+.app-title {
+  height: 28px;
+  color: #111111;
+  font-size: 25px;
+  font-weight: bold;
+}
+.app-subtitle {
+  height: 16px;
+  margin-top: 1px;
+  color: #8a8a8a;
+  font-size: 12px;
+}
+.mode-pill,
+.alert-chip {
+  height: 28px;
+  border-radius: 14px;
+  background-color: #fff1e8;
+  color: #ff6900;
+  font-size: 12px;
+  text-align: center;
+}
+.mode-pill {
+  width: 86px;
+}
+.state-card,
+.metric-card,
+.selected-card,
+.ai-card,
+.timeline-card,
+.risk-card,
+.summary-card,
+.ai-summary-card,
+.history-card,
+.sync-card,
+.diagnostic-card {
+  width: 400px;
+  height: 318px;
+  margin-top: 8px;
+  padding: 14px;
+  border-radius: 24px;
+  background-color: #ffffff;
+  flex-direction: column;
+}
+.diagnostic-card {
+  height: 292px;
+}
+.sync-state {
+  width: 372px;
+  height: 44px;
+  border-radius: 18px;
+  background-color: #f7f7f7;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.sync-label {
+  width: 92px;
+  height: 22px;
+  margin-left: 14px;
+  color: #999999;
+  font-size: 13px;
+}
+.sync-value {
+  width: 246px;
+  height: 22px;
+  color: #111111;
+  font-size: 14px;
+  text-align: right;
+}
+.export-preview {
+  width: 372px;
+  height: 128px;
+  border-radius: 18px;
+  background-color: #fff7f0;
+  color: #555555;
+  font-size: 12px;
+  padding: 12px;
+}
+.sync-buttons {
+  width: 372px;
+  height: 44px;
+  margin-top: 12px;
+  flex-direction: row;
+  justify-content: center;
+}
+.mini-btn {
+  width: 132px;
+  height: 38px;
+  margin-left: 8px;
+  margin-right: 8px;
+  border-radius: 19px;
+  background-color: #ffffff;
+  color: #111111;
+  font-size: 14px;
+}
+.primary-mini {
+  background-color: #ff6900;
+  color: #ffffff;
+}
+.diag-row {
+  width: 372px;
+  height: 34px;
+  margin-bottom: 2px;
+  border-radius: 16px;
+  background-color: #f7f7f7;
+  flex-direction: row;
+  align-items: center;
+}
+.diag-name {
+  width: 86px;
+  height: 18px;
+  margin-left: 10px;
+  color: #111111;
+  font-size: 12px;
+  font-weight: bold;
+}
+.diag-status {
+  width: 46px;
+  height: 18px;
+  color: #ff6900;
+  font-size: 12px;
+  text-align: center;
+}
+.diag-detail {
+  width: 218px;
+  height: 28px;
+  color: #777777;
+  font-size: 10px;
+}
+
+.privacy-card {
+  background-color: #ffffff;
+  border-radius: 24px;
+}
+.state-card {
+  width: 400px;
+  height: 228px;
+  margin-top: 10px;
+  padding: 14px;
+}
+.state-top {
+  width: 372px;
+  height: 28px;
+  flex-direction: row;
+  align-items: center;
+}
+.state-dot {
+  width: 18px;
+  height: 22px;
+  color: #25c45a;
+  font-size: 14px;
+  text-align: center;
+}
+.state-copy {
+  width: 218px;
+  height: 24px;
+  color: #666666;
+  font-size: 14px;
+}
+.alert-chip {
+  width: 110px;
+  background-color: #f3f3f3;
+  color: #555555;
+}
+.activity-row {
+  width: 372px;
+  height: 74px;
+  margin-top: 10px;
+  flex-direction: row;
+  align-items: center;
+}
+.activity-emoji {
+  width: 62px;
+  height: 62px;
+  border-radius: 20px;
+  background-color: #f7f7f7;
+  color: #111111;
+  font-size: 31px;
+  text-align: center;
+}
+.activity-copy {
+  width: 296px;
+  height: 68px;
+  margin-left: 12px;
+  flex-direction: column;
+}
+.activity-name {
+  height: 38px;
+  font-size: 31px;
+  font-weight: bold;
+}
+.activity-meta {
+  width: 292px;
+  height: 22px;
+  margin-top: 2px;
+  color: #8a8a8a;
+  font-size: 12px;
+}
+.coach-box {
+  width: 372px;
+  flex-direction: column;
+  height: 78px;
+  margin-top: 10px;
+  border-radius: 20px;
+  background-color: #fff7f0;
+  padding: 12px;
+}
+.coach-label {
+  height: 18px;
+  color: #ff6900;
+  font-size: 12px;
+}
+.coach-text {
+  width: 348px;
+  height: 38px;
+  margin-top: 4px;
+  color: #222222;
+  font-size: 14px;
+}
+.metric-strip {
+  width: 400px;
+  height: 72px;
+  margin-top: 10px;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.metric-card {
+  width: 124px;
+  height: 72px;
+  padding: 4px;
+  align-items: center;
+  justify-content: center;
+}
+.metric-icon {
+  height: 15px;
+  color: #ff6900;
+  font-size: 12px;
+  text-align: center;
+}
+.metric-value {
+  height: 26px;
+  margin-top: 2px;
+  color: #111111;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+}
+.metric-label {
+  height: 16px;
+  margin-top: 1px;
+  color: #999999;
+  font-size: 12px;
+  text-align: center;
+}
+.primary-btn,
+.secondary-btn {
+  width: 226px;
+  height: 42px;
+  margin-top: 8px;
+  border-radius: 21px;
+  background-color: #ff6900;
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: bold;
+}
+.secondary-btn {
+  background-color: #ffffff;
+  color: #111111;
+}
+.page-hint {
+  height: 18px;
+  margin-top: 6px;
+  color: #a0a0a0;
+  font-size: 12px;
+  text-align: center;
+}
+.page-head {
+  width: 400px;
+  height: 86px;
+  margin-top: 36px;
+  align-items: flex-start;
+  flex-direction: column;
+}
+.compact-head {
+  height: 84px;
+  margin-top: 36px;
+}
+.page-kicker {
+  height: 18px;
+  color: #ff6900;
+  font-size: 12px;
+}
+.page-title {
+  height: 30px;
+  margin-top: 1px;
+  color: #111111;
+  font-size: 25px;
+  font-weight: bold;
+}
+.page-desc {
+  width: 394px;
+  height: 32px;
+  margin-top: 2px;
+  color: #8a8a8a;
+  font-size: 12px;
+}
+.selected-card {
+  width: 400px;
+  height: 126px;
+  margin-top: 10px;
+  padding: 16px;
+}
+.selected-label {
+  height: 18px;
+  color: #999999;
+  font-size: 12px;
+}
+.selected-name {
+  height: 30px;
+  margin-top: 2px;
+  color: #111111;
+  font-size: 24px;
+  font-weight: bold;
+}
+.selected-desc {
+  width: 366px;
+  height: 38px;
+  margin-top: 4px;
+  color: #777777;
+  font-size: 12px;
+}
+.scene-grid {
+  width: 400px;
+  margin-top: 10px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.scene-btn {
+  width: 118px;
+  height: 42px;
+  margin: 5px;
+  border-radius: 21px;
+  background-color: #ffffff;
+  color: #333333;
+  font-size: 14px;
+}
+.scene-main {
+  background-color: #ff6900;
+  color: #ffffff;
+}
+.ai-card {
+  width: 400px;
+  height: 322px;
+  margin-top: 8px;
+  padding: 16px;
+}
+.sensor-line {
+  width: 368px;
+  height: 40px;
+  border-radius: 20px;
+  background-color: #f7f7f7;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+.sensor-label {
+  width: 96px;
+  height: 22px;
+  margin-left: 12px;
+  color: #999999;
+  font-size: 13px;
+}
+.sensor-value {
+  width: 230px;
+  height: 22px;
+  margin-right: 12px;
+  color: #333333;
+  font-size: 12px;
+  text-align: right;
+}
+.prob-row {
+  width: 368px;
+  height: 31px;
+  margin-top: 4px;
+  flex-direction: row;
+  align-items: center;
+}
+.prob-name {
+  width: 110px;
+  height: 22px;
+  color: #333333;
+  font-size: 13px;
+}
+.bar-bg {
+  width: 166px;
+  height: 8px;
+  border-radius: 4px;
+  background-color: #eeeeee;
+}
+.bar-fill {
+  height: 8px;
+  border-radius: 4px;
+}
+.prob-pct {
+  width: 52px;
+  height: 20px;
+  margin-left: 8px;
+  color: #777777;
+  font-size: 12px;
+  text-align: right;
+}
+.timeline-card {
+  width: 400px;
+  height: 318px;
+  margin-top: 10px;
+  padding: 16px;
+}
+.empty {
+  margin-top: 104px;
+  width: 334px;
+  height: 44px;
+  color: #aaaaaa;
+  font-size: 15px;
+  text-align: center;
+}
+.seg-row,
+.history-row {
+  width: 368px;
+  height: 48px;
+  margin-bottom: 6px;
+  border-radius: 18px;
+  background-color: #f7f7f7;
+  flex-direction: row;
+  align-items: center;
+}
+.seg-dot {
+  width: 7px;
+  height: 30px;
+  border-radius: 4px;
+  margin-left: 12px;
+  margin-right: 10px;
+}
+.seg-main {
+  width: 320px;
+  height: 42px;
+  flex-direction: column;
+}
+.seg-name {
+  height: 22px;
+  color: #111111;
+  font-size: 16px;
+  font-weight: bold;
+}
+.seg-meta {
+  height: 18px;
+  margin-top: 1px;
+  color: #8a8a8a;
+  font-size: 12px;
+}
+
+.risk-card {
+  width: 400px;
+  height: 318px;
+  margin-top: 8px;
+  padding: 14px;
+}
+.risk-current {
+  width: 372px;
+  flex-direction: column;
+  height: 82px;
+  border-radius: 22px;
+  padding: 14px;
+}
+.risk-current-title {
+  height: 24px;
+  font-size: 18px;
+  font-weight: bold;
+}
+.risk-current-msg {
+  width: 344px;
+  height: 36px;
+  margin-top: 4px;
+  color: #333333;
+  font-size: 13px;
+}
+.risk-empty {
+  width: 342px;
+  height: 46px;
+  margin-top: 60px;
+  font-size: 13px;
+}
+.risk-row {
+  width: 372px;
+  height: 46px;
+  margin-top: 6px;
+  border-radius: 18px;
+  background-color: #f7f7f7;
+  flex-direction: row;
+  align-items: center;
+}
+.risk-dot {
+  width: 8px;
+  height: 28px;
+  border-radius: 4px;
+  margin-left: 12px;
+  margin-right: 10px;
+}
+.risk-row-main {
+  width: 328px;
+  height: 42px;
+  flex-direction: column;
+}
+.risk-row-title {
+  height: 22px;
+  color: #111111;
+  font-size: 15px;
+  font-weight: bold;
+}
+.risk-row-meta {
+  width: 326px;
+  height: 18px;
+  margin-top: 1px;
+  color: #777777;
+  font-size: 11px;
+}
+.summary-card {
+  width: 400px;
+  height: 294px;
+  margin-top: 8px;
+  padding: 14px;
+}
+.review-card {
+  height: 294px;
+}
+.summary-stat-row {
+  width: 372px;
+  height: 48px;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.summary-stat {
+  width: 118px;
+  flex-direction: column;
+  height: 48px;
+  border-radius: 18px;
+  background-color: #f7f7f7;
+  align-items: center;
+  justify-content: center;
+}
+.stat-value {
+  height: 24px;
+  color: #111111;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+}
+.stat-label {
+  height: 16px;
+  color: #999999;
+  font-size: 11px;
+  text-align: center;
+}
+.review-title-row {
+  width: 372px;
+  height: 22px;
+  margin-top: 10px;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.review-title {
+  height: 20px;
+  color: #111111;
+  font-size: 14px;
+  font-weight: bold;
+}
+.review-note {
+  height: 18px;
+  color: #ff6900;
+  font-size: 12px;
+  text-align: right;
+}
+.share-row {
+  width: 372px;
+  height: 24px;
+  margin-top: 4px;
+  flex-direction: row;
+  align-items: center;
+}
+.share-name {
+  width: 94px;
+  height: 20px;
+  color: #333333;
+  font-size: 12px;
+}
+.share-track {
+  width: 210px;
+  height: 8px;
+  border-radius: 4px;
+  background-color: #eeeeee;
+}
+.share-fill {
+  height: 8px;
+  border-radius: 4px;
+}
+.share-pct {
+  width: 48px;
+  height: 18px;
+  margin-left: 8px;
+  color: #777777;
+  font-size: 11px;
+  text-align: right;
+}
+.trend-title-row {
+  margin-top: 8px;
+}
+.trend-chart {
+  width: 372px;
+  height: 52px;
+  margin-top: 4px;
+  border-radius: 18px;
+  background-color: #f7f7f7;
+  padding-left: 10px;
+  padding-right: 10px;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.trend-slot {
+  width: 20px;
+  height: 48px;
+  align-items: center;
+  justify-content: flex-end;
+}
+.trend-bar {
+  width: 12px;
+  border-radius: 6px;
+}
+
+.ai-summary-card {
+  width: 400px;
+  height: 304px;
+  margin-top: 10px;
+  padding: 16px;
+}
+.ai-summary-top {
+  width: 368px;
+  height: 36px;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.ai-summary-badge {
+  width: 96px;
+  height: 26px;
+  border-radius: 13px;
+  background-color: #fff1e8;
+  color: #ff6900;
+  font-size: 12px;
+  text-align: center;
+}
+.ai-summary-state {
+  width: 240px;
+  height: 24px;
+  color: #111111;
+  font-size: 17px;
+  font-weight: bold;
+  text-align: right;
+}
+.ai-summary-text {
+  width: 368px;
+  height: 164px;
+  margin-top: 14px;
+  border-radius: 22px;
+  background-color: #f7f7f7;
+  color: #222222;
+  font-size: 15px;
+  padding: 18px;
+}
+.ai-summary-btn {
+  width: 220px;
+  height: 42px;
+  margin-top: 18px;
+  margin-left: 74px;
+  border-radius: 21px;
+  background-color: #ff6900;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: bold;
+}
+.privacy-card {
+  width: 400px;
+  flex-direction: column;
+  height: 304px;
+  margin-top: 10px;
+  padding: 16px;
+}
+.privacy-row {
+  width: 368px;
+  height: 78px;
+  margin-bottom: 10px;
+  border-radius: 22px;
+  background-color: #f7f7f7;
+  flex-direction: row;
+  align-items: center;
+}
+.privacy-icon {
+  width: 46px;
+  height: 46px;
+  margin-left: 14px;
+  border-radius: 16px;
+  background-color: #fff1e8;
+  color: #ff6900;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+}
+.privacy-main {
+  width: 282px;
+  height: 56px;
+  margin-left: 12px;
+  flex-direction: column;
+}
+.privacy-title {
+  height: 24px;
+  color: #111111;
+  font-size: 16px;
+  font-weight: bold;
+}
+.privacy-desc {
+  width: 280px;
+  height: 30px;
+  margin-top: 2px;
+  color: #777777;
+  font-size: 12px;
+}
+.summary-line {
+  width: 368px;
+  height: 36px;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.summary-key {
+  height: 22px;
+  color: #8a8a8a;
+  font-size: 15px;
+}
+.summary-value {
+  height: 24px;
+  color: #111111;
+  font-size: 17px;
+  font-weight: bold;
+  text-align: right;
+}
+.summary-tip {
+  width: 360px;
+  height: 48px;
+  margin-top: 14px;
+  color: #ff6900;
+  font-size: 14px;
+  text-align: center;
+}
+.history-card {
+  width: 400px;
+  height: 296px;
+  margin-top: 10px;
+  padding: 16px;
+}
+.history-empty {
+  margin-top: 96px;
+}
+.history-main {
+  width: 286px;
+  height: 42px;
+  margin-left: 12px;
+  flex-direction: column;
+}
+.history-title {
+  height: 22px;
+  color: #111111;
+  font-size: 15px;
+  font-weight: bold;
+}
+.history-meta {
+  height: 18px;
+  margin-top: 1px;
+  color: #888888;
+  font-size: 11px;
+}
+.history-score {
+  width: 54px;
+  height: 24px;
+  margin-right: 10px;
+  color: #ff6900;
+  font-size: 16px;
+  text-align: right;
+  font-weight: bold;
+}
+
+/* Watch-first compact visual system */
+.page-head,
+.compact-head {
+  width: 400px;
+  height: 58px;
+  margin-top: 36px;
+}
+.page-kicker {
+  height: 17px;
+  font-size: 12px;
+}
+.page-title {
+  height: 34px;
+  margin-top: 0;
+  font-size: 27px;
+}
+.app-subtitle {
+  color: #999999;
+}
+.activity-chip-row {
+  width: 296px;
+  height: 24px;
+  margin-top: 2px;
+  flex-direction: row;
+  align-items: center;
+}
+.activity-chip {
+  width: 58px;
+  height: 22px;
+  margin-right: 6px;
+  border-radius: 11px;
+  background-color: #f3f3f3;
+  color: #666666;
+  font-size: 11px;
+  text-align: center;
+}
+.activity-scene {
+  width: 150px;
+  height: 22px;
+  color: #888888;
+  font-size: 11px;
+  text-align: right;
+}
+.coach-box {
+  height: 60px;
+  margin-top: 8px;
+  padding: 10px;
+}
+.coach-head {
+  width: 352px;
+  height: 20px;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.coach-label {
+  width: 250px;
+  height: 19px;
+  font-size: 13px;
+  font-weight: bold;
+}
+.coach-zone {
+  width: 92px;
+  height: 19px;
+  font-size: 12px;
+  text-align: right;
+}
+.intensity-track {
+  width: 340px;
+  height: 8px;
+  margin-top: 8px;
+  border-radius: 4px;
+  background-color: #e8e8e8;
+}
+.intensity-fill {
+  height: 8px;
+  border-radius: 4px;
+}
+.page-hint {
+  margin-top: 4px;
+  color: #aaaaaa;
+  font-size: 11px;
+}
+
+.selected-card {
+  width: 400px;
+  height: 122px;
+  margin-top: 8px;
+  padding: 14px;
+}
+.selected-top {
+  width: 372px;
+  height: 30px;
+  flex-direction: row;
+  align-items: center;
+}
+.selected-label {
+  width: 48px;
+  height: 20px;
+}
+.selected-name {
+  width: 310px;
+  height: 30px;
+  margin-top: 0;
+  font-size: 23px;
+  text-align: right;
+}
+.selected-desc {
+  width: 372px;
+  height: 20px;
+  margin-top: 2px;
+  font-size: 12px;
+}
+.scene-wave {
+  width: 372px;
+  height: 48px;
+  margin-top: 4px;
+  border-radius: 18px;
+  background-color: #f7f7f7;
+  padding-left: 10px;
+  padding-right: 10px;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.scene-wave-slot {
+  width: 22px;
+  height: 44px;
+  align-items: center;
+  justify-content: flex-end;
+}
+.scene-wave-bar {
+  width: 11px;
+  border-radius: 6px;
+}
+.scene-grid {
+  margin-top: 8px;
+}
+
+.ai-card {
+  margin-top: 8px;
+}
+.sensor-line {
+  height: 36px;
+}
+.prob-row {
+  height: 32px;
+}
+
+.timeline-card {
+  height: 326px;
+  margin-top: 8px;
+  padding: 14px;
+}
+.timeline-summary {
+  width: 372px;
+  height: 38px;
+  border-radius: 18px;
+  background-color: #f7f7f7;
+  flex-direction: row;
+  align-items: center;
+}
+.timeline-summary-value {
+  width: 52px;
+  height: 28px;
+  margin-left: 14px;
+  color: #111111;
+  font-size: 22px;
+  font-weight: bold;
+}
+.timeline-summary-label {
+  width: 36px;
+  height: 20px;
+  color: #999999;
+  font-size: 12px;
+}
+.timeline-summary-active {
+  width: 250px;
+  height: 22px;
+  color: #ff6900;
+  font-size: 13px;
+  text-align: right;
+}
+.timeline-empty {
+  margin-top: 92px;
+}
+.seg-row {
+  height: 49px;
+  margin-top: 6px;
+  margin-bottom: 0;
+}
+.seg-main {
+  width: 326px;
+  height: 43px;
+}
+.seg-title-row {
+  width: 326px;
+  height: 22px;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.seg-name {
+  width: 242px;
+  height: 22px;
+  font-size: 14px;
+}
+.seg-confidence {
+  width: 72px;
+  height: 20px;
+  color: #777777;
+  font-size: 11px;
+  text-align: right;
+}
+.seg-bar-row {
+  width: 326px;
+  height: 18px;
+  flex-direction: row;
+  align-items: center;
+}
+.seg-track {
+  width: 196px;
+  height: 7px;
+  border-radius: 4px;
+  background-color: #e8e8e8;
+}
+.seg-fill {
+  height: 7px;
+  border-radius: 4px;
+}
+.seg-duration {
+  width: 116px;
+  height: 18px;
+  margin-left: 8px;
+  color: #777777;
+  font-size: 11px;
+  text-align: right;
+}
+
+.risk-card {
+  height: 326px;
+  margin-top: 8px;
+  padding: 14px;
+}
+.risk-current {
+  width: 372px;
+  height: 64px;
+  padding: 10px;
+  flex-direction: row;
+  align-items: center;
+}
+.risk-symbol {
+  width: 42px;
+  height: 42px;
+  border-radius: 15px;
+  color: #ffffff;
+  font-size: 23px;
+  font-weight: bold;
+  text-align: center;
+}
+.risk-current-main {
+  width: 292px;
+  height: 44px;
+  margin-left: 12px;
+  flex-direction: column;
+}
+.risk-current-title {
+  height: 24px;
+  font-size: 18px;
+}
+.risk-current-msg {
+  height: 18px;
+  margin-top: 1px;
+  color: #777777;
+  font-size: 12px;
+}
+.risk-chart-head {
+  width: 372px;
+  height: 20px;
+  margin-top: 8px;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.risk-chart-label,
+.risk-chart-zone {
+  height: 20px;
+  font-size: 12px;
+}
+.risk-chart-label {
+  color: #777777;
+}
+.risk-chart-zone {
+  width: 120px;
+  text-align: right;
+}
+.risk-trend-chart {
+  width: 372px;
+  height: 58px;
+  margin-top: 2px;
+  border-radius: 18px;
+  background-color: #f7f7f7;
+  padding-left: 10px;
+  padding-right: 10px;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.risk-trend-slot {
+  width: 20px;
+  height: 54px;
+  align-items: center;
+  justify-content: flex-end;
+}
+.risk-trend-bar {
+  width: 11px;
+  border-radius: 6px;
+}
+.risk-empty {
+  width: 342px;
+  height: 28px;
+  margin-top: 28px;
+  font-size: 13px;
+}
+.risk-row {
+  height: 38px;
+  margin-top: 5px;
+}
+.risk-dot {
+  height: 22px;
+}
+.risk-row-main {
+  width: 328px;
+  height: 24px;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.risk-row-title {
+  width: 244px;
+  height: 22px;
+  font-size: 14px;
+}
+.risk-row-meta {
+  width: 74px;
+  height: 20px;
+  margin-top: 0;
+  font-size: 11px;
+  text-align: right;
+}
+
+.summary-card,
+.review-card {
+  margin-top: 8px;
+}
+
+.ai-summary-card {
+  height: 322px;
+  margin-top: 8px;
+  padding: 14px;
+}
+.ai-summary-top {
+  width: 372px;
+  height: 32px;
+}
+.ai-metric-row {
+  width: 372px;
+  height: 56px;
+  margin-top: 8px;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.ai-metric {
+  width: 118px;
+  height: 56px;
+  border-radius: 18px;
+  background-color: #f7f7f7;
+  align-items: center;
+  justify-content: center;
+}
+.ai-metric-value {
+  width: 110px;
+  height: 26px;
+  color: #111111;
+  font-size: 17px;
+  font-weight: bold;
+  text-align: center;
+}
+.ai-metric-label {
+  height: 17px;
+  color: #999999;
+  font-size: 11px;
+  text-align: center;
+}
+.ai-summary-text {
+  width: 372px;
+  height: 108px;
+  margin-top: 10px;
+  padding: 14px;
+  font-size: 15px;
+}
+.ai-summary-btn {
+  width: 210px;
+  height: 40px;
+  margin-top: 14px;
+  margin-left: 81px;
+  font-size: 15px;
+}
+
+.history-card {
+  height: 304px;
+  margin-top: 8px;
+  padding: 14px;
+}
+.history-row {
+  width: 372px;
+  height: 55px;
+  margin-bottom: 7px;
+}
+.history-main {
+  width: 294px;
+  height: 45px;
+  margin-left: 12px;
+}
+.history-title-row {
+  width: 294px;
+  height: 22px;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.history-title {
+  width: 172px;
+  height: 22px;
+  font-size: 14px;
+}
+.history-time {
+  width: 116px;
+  height: 20px;
+  color: #999999;
+  font-size: 10px;
+  text-align: right;
+}
+.history-bar-row {
+  width: 294px;
+  height: 18px;
+  flex-direction: row;
+  align-items: center;
+}
+.history-track {
+  width: 126px;
+  height: 7px;
+  border-radius: 4px;
+  background-color: #e8e8e8;
+}
+.history-fill {
+  height: 7px;
+  border-radius: 4px;
+  background-color: #ff6900;
+}
+.history-meta {
+  width: 72px;
+  height: 18px;
+  margin-left: 8px;
+  margin-top: 0;
+  color: #777777;
+  font-size: 11px;
+}
+.history-side {
+  width: 54px;
+  height: 42px;
+  margin-right: 8px;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.history-score {
+  width: 54px;
+  height: 22px;
+  margin-right: 0;
+  font-size: 14px;
+}
+.history-segments {
+  width: 54px;
+  height: 18px;
+  color: #999999;
+  font-size: 10px;
+  text-align: right;
+}
+.history-empty {
+  margin-top: 102px;
+}
+
+.sync-card {
+  height: 318px;
+  margin-top: 8px;
+  padding: 14px;
+}
+.sync-visual {
+  width: 372px;
+  height: 62px;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+.sync-device {
+  width: 48px;
+  height: 48px;
+  border-radius: 17px;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+}
+.sync-watch {
+  background-color: #111111;
+}
+.sync-phone {
+  background-color: #ff6900;
+}
+.sync-link {
+  width: 116px;
+  height: 18px;
+  margin-left: 12px;
+  margin-right: 12px;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.sync-link-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background-color: #ffb27a;
+}
+.sync-state {
+  height: 36px;
+  margin-bottom: 6px;
+}
+.sync-label,
+.sync-value {
+  height: 20px;
+  font-size: 12px;
+}
+.export-metrics {
+  width: 372px;
+  height: 58px;
+  margin-top: 4px;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.export-metric {
+  width: 118px;
+  height: 58px;
+  border-radius: 18px;
+  background-color: #fff7f0;
+  align-items: center;
+  justify-content: center;
+}
+.export-value {
+  width: 110px;
+  height: 25px;
+  color: #111111;
+  font-size: 17px;
+  font-weight: bold;
+  text-align: center;
+}
+.export-label {
+  height: 17px;
+  color: #999999;
+  font-size: 11px;
+  text-align: center;
+}
+.sync-buttons {
+  height: 42px;
+  margin-top: 10px;
+}
+
+.diagnostic-card {
+  height: 294px;
+  margin-top: 8px;
+  padding: 14px;
+}
+.diag-summary {
+  width: 372px;
+  height: 42px;
+  border-radius: 18px;
+  background-color: #f7f7f7;
+  padding-left: 12px;
+  padding-right: 12px;
+  flex-direction: column;
+  justify-content: center;
+}
+.diag-summary-text {
+  width: 348px;
+  height: 18px;
+  color: #555555;
+  font-size: 12px;
+}
+.diag-summary-track {
+  width: 248px;
+  height: 7px;
+  margin-top: 3px;
+  border-radius: 4px;
+  background-color: #e4e4e4;
+}
+.diag-summary-fill {
+  height: 7px;
+  border-radius: 4px;
+  background-color: #22c55e;
+}
+.diag-row {
+  width: 372px;
+  height: 27px;
+  margin-top: 3px;
+  margin-bottom: 0;
+  border-radius: 13px;
+}
+.diag-dot {
+  width: 8px;
+  height: 8px;
+  margin-left: 12px;
+  margin-right: 10px;
+  border-radius: 4px;
+}
+.diag-name {
+  width: 228px;
+  height: 18px;
+  margin-left: 0;
+  font-size: 12px;
+}
+.diag-status {
+  width: 92px;
+  height: 18px;
+  margin-right: 12px;
+  font-size: 11px;
+  text-align: right;
+}
+
+.privacy-card {
+  height: 304px;
+  margin-top: 8px;
+  padding: 14px;
+}
+.privacy-grid {
+  width: 372px;
+  height: 178px;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.privacy-item {
+  width: 118px;
+  height: 170px;
+  border-radius: 24px;
+  background-color: #f7f7f7;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.privacy-icon {
+  width: 54px;
+  height: 54px;
+  margin-left: 0;
+  border-radius: 18px;
+  font-size: 20px;
+}
+.privacy-title {
+  width: 108px;
+  height: 25px;
+  margin-top: 12px;
+  font-size: 14px;
+  text-align: center;
+}
+.privacy-badge {
+  width: 74px;
+  height: 24px;
+  margin-top: 8px;
+  border-radius: 12px;
+  background-color: #fff1e8;
+  color: #ff6900;
+  font-size: 11px;
+  text-align: center;
+}
+.privacy-flow {
+  width: 372px;
+  height: 64px;
+  margin-top: 14px;
+  border-radius: 20px;
+  background-color: #fff7f0;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+.privacy-flow-node {
+  width: 78px;
+  height: 24px;
+  color: #555555;
+  font-size: 12px;
+  text-align: center;
+}
+.privacy-flow-line {
+  width: 28px;
+  height: 3px;
+  border-radius: 2px;
+  background-color: #ffb27a;
+}
+
+/* Four-page product shell and simulator-visible motion states. */
+.process-strip {
+  width: 400px;
+  height: 38px;
+  margin-top: 6px;
+  padding-left: 10px;
+  padding-right: 10px;
+  border-radius: 18px;
+  background-color: #ffffff;
+  flex-direction: row;
+  align-items: center;
+}
+.process-pulse {
+  width: 12px;
+  height: 12px;
+  border-radius: 6px;
+  transform-origin: 6px 6px;
+}
+.process-copy {
+  width: 250px;
+  height: 32px;
+  margin-left: 9px;
+  flex-direction: column;
+  justify-content: center;
+}
+.process-title {
+  height: 17px;
+  color: #111111;
+  font-size: 12px;
+  font-weight: bold;
+}
+.process-detail {
+  width: 250px;
+  height: 14px;
+  color: #8a8a8a;
+  font-size: 9px;
+}
+.power-badge {
+  width: 94px;
+  height: 22px;
+  border-radius: 11px;
+  background-color: #f3f3f3;
+  color: #666666;
+  font-size: 10px;
+  text-align: center;
+}
+.state-card {
+  height: 178px;
+  margin-top: 6px;
+  padding: 10px;
+}
+.state-top {
+  width: 380px;
+  height: 24px;
+}
+.activity-row {
+  width: 380px;
+  height: 58px;
+  margin-top: 4px;
+}
+.activity-copy {
+  height: 56px;
+}
+.activity-name {
+  height: 31px;
+  font-size: 26px;
+}
+.coach-box {
+  width: 380px;
+  height: 48px;
+  margin-top: 5px;
+  padding: 8px;
+}
+.coach-head {
+  width: 364px;
+}
+.intensity-track {
+  width: 340px;
+  margin-top: 5px;
+}
+.metric-strip {
+  height: 54px;
+  margin-top: 6px;
+}
+.metric-card {
+  height: 54px;
+}
+.metric-icon {
+  height: 12px;
+  font-size: 10px;
+}
+.metric-value {
+  height: 22px;
+  font-size: 17px;
+}
+.metric-label {
+  height: 13px;
+  font-size: 10px;
+}
+.primary-btn {
+  height: 38px;
+  margin-top: 6px;
+  font-size: 15px;
+}
+.page-hint {
+  margin-top: 2px;
+}
+
+.coach-core-card {
+  width: 400px;
+  height: 316px;
+  margin-top: 6px;
+  padding: 12px;
+  border-radius: 24px;
+  background-color: #ffffff;
+  flex-direction: column;
+}
+.coach-process-strip,
+.sync-process-strip {
+  width: 376px;
+  margin-top: 0;
+  background-color: #f7f7f7;
+}
+.coach-view {
+  width: 376px;
+  height: 244px;
+  flex-direction: column;
+}
+.coach-live-row {
+  width: 376px;
+  height: 50px;
+  margin-top: 6px;
+  border-radius: 18px;
+  padding: 7px;
+  flex-direction: row;
+  align-items: center;
+}
+.coach-live-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 18px;
+  text-align: center;
+}
+.coach-live-copy {
+  width: 320px;
+  height: 38px;
+  margin-left: 8px;
+  flex-direction: column;
+}
+.coach-live-title {
+  height: 21px;
+  font-size: 15px;
+  font-weight: bold;
+}
+.coach-live-tip {
+  height: 16px;
+  color: #777777;
+  font-size: 10px;
+}
+.coach-prob-row {
+  width: 376px;
+  height: 24px;
+  margin-top: 1px;
+}
+.prob-name {
+  width: 104px;
+  height: 18px;
+  font-size: 11px;
+}
+.bar-bg {
+  width: 166px;
+}
+.prob-pct {
+  height: 17px;
+  font-size: 10px;
+}
+.coach-advice {
+  width: 376px;
+  height: 28px;
+  margin-top: 4px;
+  color: #555555;
+  font-size: 11px;
+}
+.coach-selected-row {
+  width: 376px;
+  height: 34px;
+  margin-top: 8px;
+  border-radius: 17px;
+  background-color: #f7f7f7;
+  flex-direction: row;
+  align-items: center;
+}
+.coach-selected-label {
+  width: 86px;
+  height: 18px;
+  margin-left: 12px;
+  color: #999999;
+  font-size: 11px;
+}
+.coach-selected-name {
+  width: 260px;
+  height: 22px;
+  color: #111111;
+  font-size: 15px;
+  font-weight: bold;
+  text-align: right;
+}
+.coach-scene-grid {
+  width: 376px;
+  height: 82px;
+  margin-top: 5px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.coach-scene-btn {
+  width: 112px;
+  height: 34px;
+  margin: 3px;
+  border-radius: 17px;
+  background-color: #f7f7f7;
+  color: #333333;
+  font-size: 12px;
+}
+.coach-scene-main {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+.coach-ai-box {
+  width: 376px;
+  height: 76px;
+  margin-top: 5px;
+  padding: 9px;
+  border-radius: 18px;
+  background-color: #f7f7f7;
+}
+.coach-ai-label {
+  height: 18px;
+  color: #2563eb;
+  font-size: 11px;
+  font-weight: bold;
+}
+.coach-ai-text {
+  width: 358px;
+  height: 42px;
+  margin-top: 3px;
+  color: #333333;
+  font-size: 11px;
+}
+.coach-ai-btn {
+  width: 156px;
+  height: 32px;
+  margin-top: 5px;
+  margin-left: 110px;
+  border-radius: 16px;
+  background-color: #2563eb;
+  color: #ffffff;
+  font-size: 12px;
+}
+.core-toggle-btn {
+  width: 200px;
+  height: 34px;
+  margin-top: 5px;
+  border-radius: 17px;
+  font-size: 12px;
+}
+
+.core-timeline-card {
+  height: 316px;
+  margin-top: 6px;
+  padding: 12px;
+}
+.timeline-summary {
+  width: 376px;
+}
+.seg-row {
+  width: 376px;
+  height: 46px;
+  margin-top: 5px;
+}
+.core-review {
+  width: 376px;
+  height: 262px;
+  flex-direction: column;
+}
+.core-summary-stat-row {
+  width: 376px;
+  margin-top: 7px;
+}
+.core-share-row {
+  width: 376px;
+  height: 22px;
+  margin-top: 2px;
+}
+.core-ai-review {
+  width: 376px;
+  height: 68px;
+  margin-top: 6px;
+  padding: 8px;
+  border-radius: 17px;
+  background-color: #f7f7f7;
+}
+.core-ai-review-label {
+  height: 17px;
+  color: #7c3aed;
+  font-size: 10px;
+  font-weight: bold;
+}
+.core-ai-review-text {
+  width: 360px;
+  height: 38px;
+  margin-top: 2px;
+  color: #444444;
+  font-size: 10px;
+}
+.core-ai-review-btn {
+  width: 150px;
+  height: 28px;
+  margin-top: 4px;
+  margin-left: 113px;
+  border-radius: 14px;
+  background-color: #7c3aed;
+  color: #ffffff;
+  font-size: 11px;
+}
+
+.review-tabs {
+  width: 400px;
+  height: 34px;
+  margin-top: 4px;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.review-tab {
+  width: 94px;
+  height: 32px;
+  border-radius: 16px;
+  background-color: #ffffff;
+  color: #333333;
+  font-size: 11px;
+}
+.core-sync-card,
+.core-fold-card {
+  width: 400px;
+  height: 294px;
+  margin-top: 5px;
+  padding: 12px;
+}
+.core-sync-visual {
+  width: 376px;
+  height: 52px;
+}
+.precise-stamp,
+.precise-wait {
+  width: 376px;
+  height: 26px;
+  margin-top: 2px;
+  border-radius: 13px;
+  background-color: #ecfdf5;
+  color: #047857;
+  font-size: 11px;
+  font-weight: bold;
+  text-align: center;
+}
+.precise-wait {
+  background-color: #f7f7f7;
+  color: #777777;
+  font-weight: normal;
+}
+.core-sync-state {
+  width: 376px;
+  height: 30px;
+  margin-top: 3px;
+  margin-bottom: 2px;
+}
+.core-export-metrics {
+  width: 376px;
+  height: 50px;
+  margin-top: 3px;
+}
+.export-metric {
+  height: 50px;
+}
+.core-sync-buttons {
+  width: 376px;
+  height: 34px;
+  margin-top: 5px;
+}
+.mini-btn {
+  height: 32px;
+  font-size: 12px;
+}
+.history-row {
+  height: 50px;
+  margin-bottom: 4px;
+}
+.fold-action-btn {
+  width: 178px;
+  height: 32px;
+  margin-top: 5px;
+  margin-left: 99px;
+  border-radius: 16px;
+  background-color: #4f46e5;
+  color: #ffffff;
+  font-size: 12px;
+}
+.diag-row {
+  width: 376px;
+  height: 25px;
+  margin-top: 2px;
+}
+.core-privacy-grid {
+  width: 376px;
+  height: 168px;
+}
+.core-privacy-item {
+  width: 120px;
+  height: 162px;
+}
+.privacy-badge {
+  width: 104px;
+  font-size: 9px;
+}
+.power-policy-detail {
+  width: 376px;
+  height: 42px;
+  margin-top: 7px;
+  padding: 8px;
+  border-radius: 16px;
+  background-color: #f7f7f7;
+  color: #666666;
+  font-size: 10px;
+  text-align: center;
+}
+
+/* Code-native motion buddy and transform/opacity-only event transitions. */
+.buddy-zone {
+  position: relative;
+  width: 60px;
+  height: 58px;
+}
+.activity-buddy-pop,
+.heart-buddy-pulse,
+.motion-buddy {
+  width: 48px;
+  height: 48px;
+}
+.activity-buddy-pop {
+  position: absolute;
+  left: 5px;
+  top: 0;
+  transform-origin: 24px 24px;
+  transition-property: transform, opacity;
+  transition-duration: 110ms;
+  transition-timing-function: ease-out;
+}
+.heart-buddy-pulse {
+  transform-origin: 24px 24px;
+  transition-property: transform;
+  transition-duration: 120ms;
+  transition-timing-function: ease-out;
+}
+.motion-buddy {
+  border-radius: 18px;
+  background-color: #d9f7ed;
+  flex-direction: column;
+  align-items: center;
+  transform-origin: 24px 24px;
+  transition-property: transform;
+  transition-duration: 1200ms;
+  transition-timing-function: ease-in-out;
+}
+.buddy-eye-row {
+  width: 34px;
+  height: 13px;
+  margin-top: 6px;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.buddy-eye {
+  width: 5px;
+  height: 7px;
+  border-radius: 3px;
+  background-color: #155e75;
+}
+.buddy-face-row {
+  width: 40px;
+  height: 24px;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.buddy-cheek {
+  width: 7px;
+  height: 5px;
+  border-radius: 3px;
+  background-color: #fb7185;
+}
+.buddy-activity {
+  width: 22px;
+  height: 22px;
+  color: #0369a1;
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+}
+.baseline-dots {
+  position: absolute;
+  left: 15px;
+  top: 50px;
+  width: 30px;
+  height: 8px;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.baseline-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background-color: #38bdf8;
+  transition-property: transform, opacity;
+  transition-duration: 140ms;
+  transition-timing-function: ease-in-out;
+}
+.activity-name {
+  transform-origin: 0 16px;
+  transition-property: transform, opacity;
+  transition-duration: 110ms;
+  transition-timing-function: ease-out;
+}
+.heart-value {
+  transform-origin: 34px 11px;
+  transition-property: transform;
+  transition-duration: 120ms;
+  transition-timing-function: ease-out;
+}
+.coach-box,
+.coach-live-row {
+  transition-property: transform;
+  transition-duration: 60ms;
+  transition-timing-function: linear;
+}
+.process-pulse {
+  transition-property: transform, opacity;
+  transition-duration: 1200ms;
+  transition-timing-function: ease-in-out;
+}
+.sync-link-dot {
+  transition-property: opacity;
+  transition-duration: 180ms;
+  transition-timing-function: ease-in-out;
+}
+.start-action {
+  position: relative;
+  width: 400px;
+  height: 38px;
+  margin-top: 6px;
+  align-items: center;
+  justify-content: center;
+}
+.start-primary-btn {
+  width: 400px;
+  height: 38px;
+  margin-top: 0;
+  transform-origin: 200px 19px;
+  transition-property: transform, opacity;
+  transition-duration: 70ms;
+  transition-timing-function: ease-out;
+}
+.start-ring {
+  position: absolute;
+  left: 181px;
+  top: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 19px;
+  background-color: #ff8a4c;
+  align-items: center;
+  justify-content: center;
+  transform-origin: 19px 19px;
+  transition-property: transform, opacity;
+  transition-duration: 70ms;
+  transition-timing-function: ease-out;
+  z-index: 4;
+}
+.start-ring-core {
+  width: 26px;
+  height: 26px;
+  border-radius: 13px;
+  background-color: #ffffff;
+}
+.goal-stars {
+  position: absolute;
+  left: 120px;
+  top: 82px;
+  width: 240px;
+  height: 66px;
+  transform-origin: 120px 33px;
+  transition-property: transform;
+  transition-duration: 100ms;
+  transition-timing-function: ease-out;
+  z-index: 20;
+}
+.goal-star {
+  position: absolute;
+  top: 2px;
+  width: 28px;
+  height: 28px;
+  color: #fb7185;
+  font-size: 22px;
+  text-align: center;
+  transition-property: transform, opacity;
+  transition-duration: 100ms;
+  transition-timing-function: ease-out;
+}
+.goal-star-left { left: 76px; }
+.goal-star-top { left: 106px; color: #38bdf8; }
+.goal-star-right { left: 136px; color: #34d399; }
+.goal-stars-text {
+  position: absolute;
+  left: 46px;
+  top: 34px;
+  width: 148px;
+  height: 26px;
+  border-radius: 13px;
+  background-color: #ffffff;
+  color: #047857;
+  font-size: 12px;
+  font-weight: bold;
+  text-align: center;
+  transition-property: opacity;
+  transition-duration: 100ms;
+  transition-timing-function: ease-out;
+}
+.precise-stamp {
+  transform-origin: 188px 13px;
+  transition-property: transform, opacity;
+  transition-duration: 160ms;
+  transition-timing-function: ease-out;
+}
+
+/* Mint-soda companion visual system: quiet surfaces, friendly hierarchy. */
+.swiper,
+.screen {
+  background-color: #F4FAF7;
+}
+.swiper {
+  indicator-color: #CFE3DA;
+  indicator-selected-color: #FF7A3D;
+}
+.nav-next {
+  left: 352px;
+  top: 5px;
+  width: 44px;
+  height: 30px;
+  border-radius: 15px;
+  background-color: #E3F5EE;
+  color: #16755A;
+  font-size: 24px;
+  font-weight: bold;
+}
+.global-stop {
+  left: 145px;
+  top: 5px;
+  width: 96px;
+  height: 30px;
+  background-color: #FFF0F0;
+  color: #B53A3A;
+  font-size: 12px;
+  font-weight: bold;
+}
+.app-head {
+  width: 400px;
+  height: 46px;
+  margin-top: 36px;
+}
+.title-block {
+  width: 270px;
+  height: 46px;
+}
+.app-title {
+  height: 29px;
+  color: #22312D;
+  font-size: 26px;
+}
+.app-subtitle {
+  height: 17px;
+  margin-top: 0;
+  color: #74817B;
+  font-size: 12px;
+}
+.mode-pill {
+  width: 96px;
+  height: 28px;
+  border-radius: 14px;
+  background-color: #FFF0E7;
+  color: #C6511C;
+  font-size: 12px;
+}
+.state-card,
+.coach-core-card,
+.timeline-card,
+.sync-card,
+.history-card,
+.diagnostic-card,
+.privacy-card {
+  background-color: #FFFFFF;
+  border-radius: 24px;
+}
+.state-card {
+  width: 400px;
+  height: 220px;
+  margin-top: 7px;
+  padding: 12px;
+}
+.hero-process-strip {
+  width: 376px;
+  height: 36px;
+  margin-top: 0;
+  padding-left: 10px;
+  padding-right: 8px;
+  border-radius: 18px;
+  background-color: #F4FAF7;
+}
+.process-copy {
+  width: 244px;
+  height: 32px;
+}
+.process-pulse {
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+}
+.process-title {
+  color: #22312D;
+  font-size: 12px;
+}
+.process-detail {
+  width: 244px;
+  height: 15px;
+  color: #74817B;
+  font-size: 11px;
+}
+.power-badge {
+  width: 88px;
+  height: 23px;
+  border-radius: 12px;
+  background-color: #EAF5FF;
+  color: #25658B;
+  font-size: 10px;
+}
+.hero-activity-row {
+  width: 376px;
+  height: 90px;
+  margin-top: 5px;
+}
+.buddy-zone {
+  width: 92px;
+  height: 88px;
+}
+.activity-buddy-pop,
+.heart-buddy-pulse,
+.motion-buddy {
+  width: 78px;
+  height: 78px;
+}
+.activity-buddy-pop {
+  left: 6px;
+  top: 1px;
+  transform-origin: 39px 39px;
+}
+.heart-buddy-pulse,
+.motion-buddy {
+  transform-origin: 39px 39px;
+}
+.motion-buddy {
+  position: relative;
+  border-radius: 29px;
+  background-color: #DFF6EE;
+}
+.buddy-sprout {
+  position: absolute;
+  left: 27px;
+  top: -5px;
+  width: 26px;
+  height: 15px;
+}
+.buddy-leaf {
+  position: absolute;
+  top: 1px;
+  width: 14px;
+  height: 10px;
+  border-radius: 8px;
+  background-color: #52B99A;
+}
+.buddy-leaf-left {
+  left: 1px;
+}
+.buddy-leaf-right {
+  left: 12px;
+  top: 5px;
+  background-color: #7BD0B4;
+}
+.buddy-eye-row {
+  width: 50px;
+  height: 18px;
+  margin-top: 20px;
+}
+.buddy-eye {
+  width: 6px;
+  height: 9px;
+  border-radius: 4px;
+  background-color: #195D50;
+}
+.buddy-face-row {
+  width: 58px;
+  height: 34px;
+}
+.buddy-cheek {
+  width: 9px;
+  height: 6px;
+  border-radius: 4px;
+  background-color: #FF9EAB;
+}
+.buddy-activity {
+  width: 28px;
+  height: 27px;
+  color: #25658B;
+  font-size: 19px;
+}
+.baseline-dots {
+  left: 27px;
+  top: 81px;
+  width: 38px;
+}
+.baseline-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 4px;
+  background-color: #62A9E8;
+}
+.activity-copy {
+  width: 272px;
+  height: 86px;
+  margin-left: 12px;
+}
+.hero-state-top {
+  width: 272px;
+  height: 25px;
+}
+.state-dot {
+  width: 16px;
+  color: #3EBE9B;
+  font-size: 12px;
+}
+.state-copy {
+  width: 132px;
+  color: #5F6F69;
+  font-size: 12px;
+}
+.alert-chip {
+  width: 116px;
+  height: 24px;
+  border-radius: 12px;
+  font-size: 11px;
+}
+.activity-name {
+  height: 35px;
+  color: #22312D;
+  font-size: 29px;
+}
+.activity-chip-row {
+  width: 272px;
+  height: 23px;
+  margin-top: 2px;
+}
+.activity-chip {
+  width: 58px;
+  height: 22px;
+  border-radius: 11px;
+  background-color: #F0F5F2;
+  color: #5F6F69;
+  font-size: 11px;
+}
+.activity-scene {
+  width: 138px;
+  color: #74817B;
+  font-size: 11px;
+}
+.coach-box {
+  width: 376px;
+  height: 65px;
+  margin-top: 5px;
+  padding: 8px;
+  border-radius: 19px;
+}
+.coach-head {
+  width: 360px;
+  height: 18px;
+}
+.coach-label {
+  width: 262px;
+  height: 18px;
+  font-size: 12px;
+}
+.coach-zone {
+  width: 90px;
+  height: 18px;
+  font-size: 11px;
+}
+.coach-preview {
+  width: 360px;
+  height: 17px;
+  color: #5F6F69;
+  font-size: 11px;
+}
+.intensity-track {
+  width: 360px;
+  height: 6px;
+  margin-top: 4px;
+  border-radius: 3px;
+  background-color: #E8EFEC;
+}
+.intensity-fill {
+  height: 6px;
+  border-radius: 3px;
+}
+.metric-strip {
+  width: 400px;
+  height: 59px;
+  margin-top: 7px;
+}
+.metric-card {
+  width: 126px;
+  height: 59px;
+  padding: 3px;
+  border-radius: 19px;
+}
+.metric-heart {
+  background-color: #FFF0F0;
+}
+.metric-steps {
+  background-color: #EAF5FF;
+}
+.metric-zone {
+  background-color: #E8F8F1;
+}
+.metric-icon {
+  height: 13px;
+  color: #C6511C;
+  font-size: 10px;
+}
+.metric-value {
+  height: 23px;
+  color: #22312D;
+  font-size: 19px;
+}
+.metric-label {
+  height: 14px;
+  color: #74817B;
+  font-size: 11px;
+}
+.start-action {
+  width: 400px;
+  height: 40px;
+  margin-top: 7px;
+}
+.primary-btn,
+.start-primary-btn {
+  width: 400px;
+  height: 40px;
+  margin-top: 0;
+  border-radius: 20px;
+  background-color: #FF6900;
+  color: #FFFFFF;
+  font-size: 16px;
+}
+.start-ring {
+  top: 1px;
+  background-color: #FF8A4C;
+}
+.page-hint {
+  height: 16px;
+  margin-top: 2px;
+  color: #74817B;
+  font-size: 11px;
+}
+.goal-stars {
+  top: 76px;
+}
+.goal-stars-text {
+  background-color: #E8F8F1;
+  color: #16755A;
+}
+
+/* Shared secondary-page hierarchy. */
+.page-head,
+.compact-head {
+  width: 400px;
+  height: 62px;
+  margin-top: 34px;
+}
+.page-kicker {
+  height: 18px;
+  color: #3E9E82;
+  font-size: 12px;
+}
+.page-title {
+  height: 36px;
+  color: #22312D;
+  font-size: 28px;
+}
+.secondary-btn,
+.core-toggle-btn {
+  width: 214px;
+  height: 36px;
+  margin-top: 7px;
+  border-radius: 18px;
+  background-color: #E3F5EE;
+  color: #16755A;
+  font-size: 13px;
+  font-weight: bold;
+}
+.coach-core-card {
+  width: 400px;
+  height: 310px;
+  margin-top: 6px;
+  padding: 12px;
+}
+.coach-process-strip,
+.sync-process-strip {
+  width: 376px;
+  height: 36px;
+  background-color: #F4FAF7;
+}
+.coach-view {
+  width: 376px;
+  height: 248px;
+}
+.coach-live-row {
+  width: 376px;
+  height: 66px;
+  margin-top: 3px;
+  padding: 6px;
+  border-radius: 20px;
+  align-items: center;
+}
+.coach-live-orb {
+  width: 54px;
+  height: 54px;
+  border-radius: 20px;
+  flex-direction: column;
+  align-items: center;
+}
+.coach-orb-eye-row {
+  width: 28px;
+  height: 12px;
+  margin-top: 7px;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.coach-orb-eye {
+  width: 4px;
+  height: 6px;
+  border-radius: 3px;
+  background-color: #195D50;
+}
+.coach-live-mark {
+  width: 38px;
+  height: 30px;
+  border-radius: 0;
+  background-color: transparent;
+  font-size: 19px;
+  font-weight: bold;
+  text-align: center;
+}
+.coach-live-copy {
+  width: 294px;
+  height: 48px;
+  margin-left: 10px;
+}
+.coach-live-title {
+  height: 26px;
+  font-size: 18px;
+}
+.coach-live-tip {
+  height: 19px;
+  color: #5F6F69;
+  font-size: 11px;
+}
+.prob-heading {
+  width: 376px;
+  height: 22px;
+  margin-top: 4px;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.prob-heading-title,
+.prob-heading-note {
+  height: 20px;
+  color: #22312D;
+  font-size: 12px;
+  font-weight: bold;
+}
+.prob-heading-note {
+  color: #74817B;
+  font-size: 11px;
+  font-weight: normal;
+  text-align: right;
+}
+.coach-prob-row {
+  width: 376px;
+  height: 28px;
+  margin-top: 1px;
+}
+.prob-name {
+  width: 54px;
+  color: #5F6F69;
+  font-size: 11px;
+}
+.bar-bg {
+  width: 266px;
+  height: 8px;
+  border-radius: 4px;
+  background-color: #E8EFEC;
+}
+.bar-fill {
+  height: 8px;
+  border-radius: 4px;
+}
+.prob-pct {
+  width: 46px;
+  color: #74817B;
+  font-size: 11px;
+}
+.coach-advice-box {
+  width: 376px;
+  height: 60px;
+  margin-top: 5px;
+  padding: 8px;
+  border-radius: 18px;
+  background-color: #FFF8ED;
+}
+.coach-advice-label {
+  width: 360px;
+  height: 17px;
+  color: #C6511C;
+  font-size: 11px;
+  font-weight: bold;
+}
+.coach-advice {
+  width: 360px;
+  height: 34px;
+  margin-top: 1px;
+  color: #5A4639;
+  font-size: 12px;
+}
+.coach-selected-row {
+  background-color: #F4FAF7;
+}
+.coach-scene-btn {
+  background-color: #F0F5F2;
+  color: #42514B;
+}
+.coach-scene-main {
+  background-color: #E3F5EE;
+  color: #16755A;
+}
+.coach-ai-box,
+.core-ai-review {
+  background-color: #EAF5FF;
+}
+.coach-ai-label,
+.core-ai-review-label {
+  color: #25658B;
+}
+.coach-ai-btn,
+.core-ai-review-btn {
+  background-color: #6E7FEA;
+}
+
+/* Timeline is one readable story instead of a stack of dashboard bars. */
+.core-timeline-card {
+  width: 400px;
+  height: 310px;
+  margin-top: 6px;
+  padding: 12px;
+}
+.timeline-summary {
+  width: 376px;
+  height: 66px;
+  padding: 7px;
+  border-radius: 20px;
+  background-color: #F4FAF7;
+  flex-direction: row;
+  align-items: center;
+}
+.timeline-summary-orb {
+  width: 52px;
+  height: 52px;
+  border-radius: 19px;
+  background-color: #EAF5FF;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+.timeline-summary-value {
+  width: 27px;
+  height: 29px;
+  color: #25658B;
+  font-size: 22px;
+  text-align: right;
+}
+.timeline-summary-label {
+  width: 18px;
+  height: 20px;
+  color: #25658B;
+  font-size: 10px;
+}
+.timeline-summary-copy {
+  width: 190px;
+  height: 44px;
+  margin-left: 10px;
+  flex-direction: column;
+}
+.timeline-summary-title {
+  height: 23px;
+  color: #22312D;
+  font-size: 14px;
+  font-weight: bold;
+}
+.timeline-summary-sub {
+  height: 18px;
+  color: #74817B;
+  font-size: 10px;
+}
+.timeline-summary-active {
+  width: 106px;
+  height: 24px;
+  color: #C6511C;
+  font-size: 11px;
+  font-weight: bold;
+  text-align: right;
+}
+.timeline-empty {
+  width: 376px;
+  height: 174px;
+  margin-top: 10px;
+  padding-top: 70px;
+  border-radius: 20px;
+  background-color: #E8F8F1;
+  color: #16755A;
+  font-size: 13px;
+  text-align: center;
+}
+.seg-row {
+  width: 376px;
+  height: 50px;
+  margin-top: 7px;
+  padding: 7px;
+  border-radius: 17px;
+  background-color: #FBFDFC;
+}
+.seg-dot {
+  width: 8px;
+  height: 34px;
+  border-radius: 4px;
+}
+.seg-main {
+  width: 346px;
+  height: 36px;
+  margin-left: 9px;
+}
+.seg-name {
+  color: #22312D;
+  font-size: 12px;
+}
+.seg-confidence,
+.seg-duration {
+  color: #74817B;
+  font-size: 10px;
+}
+.seg-track,
+.share-track {
+  background-color: #E8EFEC;
+}
+.summary-stat {
+  background-color: #F4FAF7;
+}
+
+/* Sync uses three clear levels; diagnostics/privacy live under More. */
+.review-tabs {
+  width: 400px;
+  height: 38px;
+  margin-top: 3px;
+}
+.review-tab-wide {
+  width: 128px;
+  height: 36px;
+  border-radius: 18px;
+  font-size: 12px;
+  font-weight: bold;
+}
+.core-sync-card,
+.core-fold-card {
+  width: 400px;
+  height: 294px;
+  margin-top: 5px;
+  padding: 12px;
+}
+.core-sync-visual {
+  width: 376px;
+  height: 64px;
+  margin-top: 1px;
+}
+.sync-device {
+  background-color: transparent;
+}
+.sync-watch {
+  width: 60px;
+  height: 62px;
+  flex-direction: column;
+  align-items: center;
+}
+.watch-strap {
+  width: 20px;
+  height: 7px;
+  border-radius: 4px;
+  background-color: #A9BBB4;
+}
+.watch-strap-top {
+  margin-bottom: -2px;
+}
+.watch-strap-bottom {
+  margin-top: -2px;
+}
+.watch-screen {
+  width: 50px;
+  height: 46px;
+  border-radius: 17px;
+  background-color: #22312D;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+.watch-screen-face {
+  width: 40px;
+  height: 27px;
+  color: #9DE1C9;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+}
+.sync-phone {
+  width: 48px;
+  height: 62px;
+  padding: 5px;
+  border-radius: 16px;
+  background-color: #6E7FEA;
+  align-items: center;
+  justify-content: center;
+}
+.phone-screen {
+  width: 38px;
+  height: 50px;
+  border-radius: 12px;
+  background-color: #FFFFFF;
+  align-items: center;
+  justify-content: center;
+}
+.phone-screen-face {
+  width: 30px;
+  height: 24px;
+  color: #5364CC;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+}
+.sync-link {
+  width: 152px;
+  height: 30px;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+.sync-link-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 5px;
+  background-color: #62A9E8;
+}
+.precise-stamp,
+.precise-wait {
+  background-color: #E8F8F1;
+  color: #16755A;
+  font-size: 11px;
+}
+.precise-wait {
+  background-color: #F0F5F2;
+  color: #5F6F69;
+}
+.core-sync-state {
+  background-color: #F4FAF7;
+}
+.export-metric {
+  background-color: #FFF8ED;
+}
+.primary-mini {
+  background-color: #FF6900;
+}
+.mini-btn {
+  background-color: #E3F5EE;
+  color: #16755A;
+}
+.more-tabs {
+  width: 376px;
+  height: 31px;
+  margin-bottom: 5px;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.more-tab {
+  width: 184px;
+  height: 30px;
+  border-radius: 15px;
+  font-size: 11px;
+  font-weight: bold;
+}
+.diag-summary {
+  height: 31px;
+  margin-bottom: 3px;
+  background-color: #F4FAF7;
+}
+.diag-row {
+  width: 376px;
+  height: 22px;
+  margin-top: 1px;
+  background-color: #FBFDFC;
+}
+.diag-name,
+.diag-status {
+  height: 17px;
+  font-size: 11px;
+}
+.diag-name {
+  color: #22312D;
+}
+.fold-action-btn {
+  height: 30px;
+  margin-top: 4px;
+  background-color: #E3F5EE;
+  color: #16755A;
+}
+.core-privacy-grid {
+  height: 148px;
+}
+.core-privacy-item {
+  width: 120px;
+  height: 144px;
+  border-radius: 20px;
+  background-color: #F4FAF7;
+}
+.privacy-icon {
+  background-color: #DFF6EE;
+  color: #16755A;
+}
+.privacy-title {
+  color: #22312D;
+  font-size: 12px;
+}
+.privacy-badge {
+  width: 108px;
+  color: #74817B;
+  font-size: 10px;
+}
+.power-policy-detail {
+  height: 39px;
+  margin-top: 5px;
+  background-color: #EAF5FF;
+  color: #25658B;
+  font-size: 10px;
+}
+.history-row {
+  background-color: #FBFDFC;
+}
+.history-fill,
+.diag-summary-fill {
+  background-color: #3EBE9B;
+}
+
+/* Low-orange refinement: orange is reserved for intensity and risk only. */
+.swiper {
+  indicator-selected-color: #3EBE9B;
+}
+.mode-pill {
+  background-color: #EAF5FF;
+  color: #25658B;
+}
+.metric-icon {
+  color: #3E9E82;
+}
+.primary-btn,
+.start-primary-btn {
+  background-color: #239B78;
+}
+.start-ring {
+  background-color: #7BD0B4;
+}
+.coach-advice-box {
+  background-color: #F1F4FF;
+}
+.coach-advice-label {
+  color: #5364CC;
+}
+.coach-advice {
+  color: #42514B;
+}
+.timeline-summary-active {
+  color: #3E9E82;
+}
+.export-metric {
+  background-color: #F1F4FF;
+}
+.primary-mini {
+  background-color: #5364CC;
+  color: #FFFFFF;
+}
+
+/* Watch-density refinement: one glance, one result, one action. */
+.title-block {
+  width: 230px;
+  height: 46px;
+  justify-content: center;
+}
+.app-title {
+  height: 38px;
+  font-size: 30px;
+}
+.mode-pill {
+  width: 42px;
+  height: 30px;
+  border-radius: 15px;
+  font-size: 14px;
+}
+.hero-process-strip,
+.coach-process-strip,
+.sync-process-strip {
+  width: 166px;
+  height: 30px;
+  padding-left: 12px;
+  padding-right: 12px;
+  border-radius: 15px;
+}
+.process-copy {
+  width: 126px;
+  height: 28px;
+}
+.process-title {
+  width: 126px;
+  height: 25px;
+  font-size: 13px;
+  text-align: center;
+}
+.hero-activity-row {
+  height: 100px;
+}
+.activity-copy {
+  height: 94px;
+  justify-content: center;
+}
+.hero-state-top {
+  height: 20px;
+}
+.state-copy {
+  width: 220px;
+  font-size: 11px;
+}
+.activity-name {
+  height: 40px;
+  font-size: 32px;
+}
+.activity-chip-row {
+  width: 142px;
+  height: 25px;
+  margin-top: 3px;
+}
+.activity-chip {
+  width: 66px;
+  height: 24px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+.coach-box {
+  height: 50px;
+  padding: 9px;
+}
+.coach-head {
+  width: 358px;
+  height: 22px;
+}
+.coach-label {
+  height: 20px;
+  font-size: 13px;
+}
+.intensity-track {
+  width: 358px;
+  margin-top: 5px;
+}
+.metric-card {
+  justify-content: center;
+}
+.metric-icon {
+  height: 17px;
+  font-size: 12px;
+}
+.metric-value {
+  height: 30px;
+  font-size: 24px;
+}
+.start-primary-btn {
+  font-size: 22px;
+}
+.page-head,
+.compact-head {
+  justify-content: center;
+}
+.page-title {
+  height: 43px;
+  font-size: 31px;
+}
+.coach-live-copy {
+  height: 34px;
+  justify-content: center;
+}
+.coach-live-title {
+  height: 30px;
+  font-size: 20px;
+}
+.coach-prob-row {
+  height: 34px;
+  margin-top: 4px;
+}
+.bar-bg {
+  height: 10px;
+  border-radius: 5px;
+}
+.bar-fill {
+  height: 10px;
+  border-radius: 5px;
+}
+.coach-advice-box {
+  height: 64px;
+  margin-top: 9px;
+  flex-direction: row;
+  align-items: center;
+}
+.coach-advice-label {
+  width: 38px;
+  height: 38px;
+  border-radius: 19px;
+  background-color: #DFF6EE;
+  color: #16755A;
+  font-size: 16px;
+  text-align: center;
+}
+.coach-advice {
+  width: 308px;
+  height: 46px;
+  margin-left: 10px;
+  font-size: 13px;
+}
+.timeline-summary {
+  justify-content: space-between;
+}
+.timeline-summary-active {
+  width: 280px;
+  height: 34px;
+  font-size: 24px;
+  text-align: right;
+}
+.seg-name {
+  font-size: 14px;
+}
+.seg-duration {
+  font-size: 12px;
+}
+.sync-value {
+  width: 376px;
+  text-align: center;
+}
+.privacy-title {
+  height: 30px;
+  font-size: 14px;
+}
+
+/* Interaction polish: page position, generous taps, and reversible busy states. */
+.nav-prev {
+  position: absolute;
+  left: 72px;
+  top: 3px;
+  width: 56px;
+  height: 34px;
+  border-radius: 17px;
+  background-color: #E3F5EE;
+  color: #16755A;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  z-index: 9;
+}
+.nav-next {
+  left: 340px;
+  top: 3px;
+  width: 56px;
+  height: 34px;
+  border-radius: 17px;
+}
+.page-dots {
+  position: absolute;
+  left: 208px;
+  top: 15px;
+  width: 64px;
+  height: 10px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 9;
+}
+.page-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  transition-property: transform;
+  transition-duration: 180ms;
+  transition-timing-function: ease-out;
+}
+.mini-btn,
+.core-toggle-btn {
+  height: 38px;
+  border-radius: 19px;
+}
+.fold-action-btn,
+.coach-ai-btn,
+.core-ai-review-btn {
+  height: 36px;
+  border-radius: 18px;
+}
+.core-sync-buttons {
+  height: 40px;
+  margin-top: 4px;
+}
+.history-clear-btn {
+  background-color: #E3F5EE;
+  color: #16755A;
+}
+.review-note {
+  color: #3E9E82;
+}
+/* Large-type watch layout. 480 design pixels map to 390 panel pixels.
+ * Keep controls >=60 design pixels (49 panel pixels) and primary body text >=24.
+ * Navigation uses the previously empty bottom area, clear of page content. */
+.app-head, .page-head, .compact-head {
+  width: 440px; height: 46px; margin-top: 12px;
+}
+.title-block { width: 280px; height: 46px; }
+.app-title, .page-title { height: 46px; font-size: 36px; }
+.mode-pill { width: 88px; height: 38px; font-size: 24px; border-radius: 19px; }
+.demo-page-mark, .demo-run-mark { width: 0; height: 0; }
+.state-card { width: 440px; height: 244px; margin-top: 8px; padding: 12px; }
+.hero-process-strip, .coach-process-strip, .sync-process-strip {
+  width: 224px; height: 36px; margin-top: 0; padding-left: 10px; padding-right: 10px;
+}
+.process-copy { width: 184px; height: 34px; }
+.process-title { width: 184px; height: 32px; font-size: 24px; color: #22312D; }
+.hero-activity-row { width: 416px; height: 116px; margin-top: 4px; }
+.activity-copy { width: 304px; height: 116px; margin-left: 12px; }
+.hero-state-top { height: 28px; }
+.state-copy { width: 272px; height: 28px; font-size: 22px; color: #42514B; }
+.state-dot { height: 28px; font-size: 16px; }
+.activity-name { width: 304px; height: 52px; font-size: 42px; }
+.activity-chip-row { width: 264px; height: 32px; margin-top: 0; }
+.activity-chip { width: 126px; height: 32px; font-size: 24px; color: #42514B; }
+.coach-box { width: 416px; height: 56px; margin-top: 4px; padding: 8px; }
+.coach-head { width: 400px; height: 30px; }
+.coach-label { width: 270px; height: 30px; font-size: 24px; }
+.coach-zone { width: 110px; height: 30px; font-size: 24px; }
+.intensity-track { width: 400px; margin-top: 4px; }
+.metric-strip { width: 440px; height: 84px; margin-top: 8px; }
+.metric-card { width: 140px; height: 84px; padding: 4px; }
+.metric-icon { height: 30px; font-size: 24px; color: #42514B; }
+.metric-value { height: 42px; font-size: 34px; }
+.start-action { width: 440px; height: 64px; margin-top: 8px; }
+.primary-btn, .start-primary-btn {
+  width: 440px; height: 64px; margin-top: 0; font-size: 32px; border-radius: 24px;
+  transform-origin: 220px 32px;
+}
+.start-ring { left: 201px; top: 13px; }
+.nav-prev, .nav-next {
+  top: 486px; width: 132px; height: 60px; border-radius: 22px; font-size: 26px;
+  background-color: #DFF6EE; color: #174F40;
+}
+.nav-prev { left: 20px; }
+.nav-next { left: 328px; }
+.global-stop {
+  left: 166px; top: 486px; width: 148px; height: 60px; font-size: 26px;
+  border-radius: 22px; background-color: #FCE5E5; color: #922C2C;
+}
+.page-dots { left: 196px; top: 510px; width: 88px; height: 14px; }
+.page-dot { width: 12px; height: 12px; border-radius: 6px; }
+.coach-core-card, .core-timeline-card {
+  width: 440px; height: 338px; margin-top: 8px; padding: 12px;
+}
+.core-toggle-btn { width: 440px; height: 64px; margin-top: 8px; font-size: 28px; border-radius: 24px; }
+.coach-view { width: 416px; height: 278px; }
+.coach-live-row { width: 416px; height: 66px; margin-top: 4px; }
+.coach-live-copy { width: 326px; height: 44px; }
+.coach-live-title { width: 326px; height: 42px; font-size: 30px; }
+.coach-prob-row { width: 416px; height: 40px; margin-top: 2px; }
+.prob-name { width: 154px; height: 34px; font-size: 24px; color: #22312D; }
+.bar-bg { width: 168px; height: 10px; }
+.prob-pct { width: 76px; height: 34px; margin-left: 8px; font-size: 24px; color: #42514B; }
+.coach-advice-box { width: 416px; height: 78px; margin-top: 4px; padding: 8px; }
+.coach-advice-label { width: 38px; height: 38px; font-size: 26px; }
+.coach-advice { width: 346px; height: 64px; margin-left: 8px; font-size: 24px; color: #22312D; }
+.coach-selected-row { width: 416px; height: 38px; margin-top: 2px; }
+.coach-selected-name { width: 400px; height: 34px; font-size: 26px; text-align: center; }
+.coach-scene-grid { width: 416px; height: 132px; margin-top: 2px; }
+.coach-scene-btn { width: 130px; height: 60px; margin: 3px; font-size: 26px; border-radius: 20px; }
+.coach-ai-box { width: 416px; height: 36px; margin-top: 2px; padding: 0; }
+.coach-ai-label { width: 0; height: 0; }
+.coach-ai-text { width: 416px; height: 34px; margin-top: 0; font-size: 24px; }
+.coach-ai-btn { width: 416px; height: 60px; margin-top: 4px; margin-left: 0; font-size: 26px; border-radius: 20px; }
+.timeline-summary { width: 416px; height: 60px; padding: 4px; }
+.timeline-summary-orb { width: 100px; height: 52px; }
+.timeline-summary-value { height: 42px; font-size: 34px; }
+.timeline-summary-label { height: 32px; font-size: 24px; }
+.timeline-summary-active { width: 300px; height: 44px; font-size: 34px; color: #16755A; }
+.timeline-empty { width: 416px; height: 228px; padding-top: 80px; font-size: 28px; }
+.seg-row { width: 416px; height: 48px; margin-top: 2px; margin-bottom: 0; padding: 3px; }
+.timeline-list { width: 416px; height: 254px; flex-direction: column; }
+.seg-dot { width: 8px; height: 38px; margin-left: 4px; margin-right: 4px; }
+.seg-main { width: 386px; height: 42px; margin-left: 4px; }
+.seg-title-row { width: 386px; height: 32px; }
+.seg-name { width: 242px; height: 32px; font-size: 26px; }
+.seg-duration { width: 136px; height: 32px; font-size: 24px; margin-left: 0; color: #42514B; }
+.seg-bar-row { width: 386px; height: 8px; }
+.core-review { width: 416px; height: 310px; }
+.core-summary-stat-row { width: 416px; height: 78px; margin-top: 0; }
+.summary-stat { width: 134px; height: 76px; }
+.stat-value { height: 40px; font-size: 30px; }
+.stat-label { height: 32px; font-size: 24px; color: #42514B; }
+.review-title-row { width: 416px; height: 34px; margin-top: 4px; }
+.review-note { width: 416px; height: 32px; font-size: 24px; color: #16755A; }
+.core-ai-review { width: 416px; height: 118px; margin-top: 4px; padding: 8px; }
+.core-ai-review-label { height: 30px; font-size: 24px; }
+.core-ai-review-text { width: 400px; height: 74px; margin-top: 0; font-size: 24px; }
+.core-ai-review-btn { width: 416px; height: 60px; margin-top: 8px; margin-left: 0; font-size: 26px; border-radius: 20px; }
+.review-tabs { width: 440px; height: 60px; margin-top: 8px; }
+.review-tab-wide { width: 140px; height: 60px; font-size: 28px; border-radius: 22px; }
+.core-sync-card, .core-fold-card { width: 440px; height: 342px; margin-top: 8px; padding: 12px; }
+.core-sync-visual { width: 416px; height: 76px; margin-top: 0; }
+.watch-screen-face, .phone-screen-face { height: 34px; font-size: 26px; }
+.precise-stamp, .precise-wait { width: 416px; height: 36px; font-size: 26px; margin-top: 2px; }
+.core-export-metrics { width: 416px; height: 84px; margin-top: 4px; }
+.export-metric { width: 134px; height: 84px; }
+.export-value { width: 132px; height: 42px; font-size: 32px; }
+.export-label { height: 32px; font-size: 24px; color: #42514B; }
+.core-sync-buttons { width: 416px; height: 60px; margin-top: 8px; }
+.mini-btn { width: 202px; height: 60px; font-size: 28px; border-radius: 20px; }
+.empty { width: 416px; height: 74px; font-size: 28px; color: #42514B; }
+.history-row { width: 416px; height: 62px; margin-bottom: 0; }
+.history-main { width: 308px; height: 60px; margin-left: 4px; }
+.history-title-row { width: 308px; height: 60px; flex-direction: column; }
+.history-title { width: 308px; height: 32px; font-size: 26px; }
+.history-time { width: 308px; height: 28px; font-size: 22px; text-align: left; color: #42514B; }
+.history-side { width: 92px; height: 60px; margin-right: 4px; justify-content: center; }
+.history-score { width: 92px; height: 34px; font-size: 26px; }
+.fold-action-btn { width: 416px; height: 60px; margin-top: 8px; margin-left: 0; font-size: 26px; border-radius: 20px; }
+.more-tabs { width: 416px; height: 60px; margin-bottom: 4px; }
+.more-tab { width: 202px; height: 60px; font-size: 26px; border-radius: 20px; }
+.diag-summary { width: 416px; height: 44px; margin-bottom: 2px; padding-left: 8px; }
+.diag-summary-text { width: 400px; height: 30px; font-size: 22px; color: #22312D; }
+.diag-summary-track { height: 4px; margin-top: 0; }
+.diag-row { width: 416px; height: 22px; margin-top: 0; margin-bottom: 0; }
+.diag-name { width: 254px; height: 22px; font-size: 20px; }
+.diag-status { width: 128px; height: 22px; font-size: 20px; color: #42514B; }
+.core-privacy-grid { width: 416px; height: 174px; }
+.core-privacy-item { width: 134px; height: 170px; }
+.privacy-icon { width: 66px; height: 66px; font-size: 34px; }
+.privacy-title { width: 130px; height: 36px; font-size: 28px; }
+.scene-help { width: 416px; height: 76px; margin-top: 14px; font-size: 26px; color: #42514B; text-align: center; }
+.core-ai-review-label { width: 0; height: 0; }
+.core-ai-review-text { height: 102px; }
+.diag-summary { height: 32px; }
+.diag-summary-track { height: 0; }
+.export-metric { flex-direction: column; }
+/* Extra-large type with corner-safe text bounds for the 390x450 panel.
+ * Keep title centered and both bottom captions inside x=80..310 panel px. */
+.app-head, .page-head, .compact-head {
+  width: 384px; height: 54px; margin-top: 24px; align-items: center; justify-content: center;
+}
+.title-block { width: 384px; height: 54px; align-items: center; }
+.app-title, .page-title { width: 384px; height: 52px; font-size: 40px; text-align: center; }
+.page-dots { left: 196px; top: 82px; width: 88px; height: 8px; }
+.page-dot { width: 7px; height: 7px; border-radius: 4px; }
+.state-card { width: 384px; height: 180px; margin-top: 10px; padding: 12px; }
+.hero-activity-row { width: 360px; height: 112px; margin-top: 0; }
+.activity-copy { width: 260px; height: 112px; margin-left: 8px; }
+.activity-name { width: 260px; height: 64px; font-size: 50px; }
+.activity-chip-row { width: 260px; height: 46px; margin-top: 0; }
+.activity-chip { width: 246px; height: 46px; font-size: 38px; text-align: left; background-color: transparent; }
+.coach-box { width: 360px; height: 40px; margin-top: 2px; padding: 2px; }
+.coach-head { width: 356px; height: 36px; }
+.coach-label { width: 356px; height: 36px; font-size: 30px; text-align: center; }
+.metric-strip { width: 384px; height: 88px; margin-top: 8px; }
+.metric-card { width: 124px; height: 88px; padding: 2px; }
+.metric-icon { height: 36px; font-size: 30px; }
+.metric-value { height: 48px; font-size: 38px; }
+.start-action { width: 384px; height: 76px; margin-top: 8px; }
+.primary-btn, .start-primary-btn {
+  width: 384px; height: 76px; font-size: 40px; border-radius: 26px; transform-origin: 192px 38px;
+}
+.start-ring { left: 173px; top: 19px; }
+.nav-prev, .nav-next { top: 464px; width: 144px; height: 72px; font-size: 32px; border-radius: 24px; }
+.nav-prev { left: 84px; }
+.nav-next { left: 252px; }
+.global-stop { left: 48px; top: 376px; width: 384px; height: 76px; font-size: 36px; border-radius: 26px; }
+.coach-core-card, .core-timeline-card { width: 384px; height: 280px; margin-top: 10px; padding: 12px; }
+.core-toggle-btn { width: 384px; height: 76px; margin-top: 8px; font-size: 36px; border-radius: 26px; }
+.coach-process-strip, .sync-process-strip { width: 260px; height: 40px; }
+.process-copy { width: 224px; height: 40px; }
+.process-title { width: 224px; height: 38px; font-size: 30px; }
+.coach-view { width: 360px; height: 216px; }
+.coach-live-row { width: 360px; height: 60px; margin-top: 0; padding: 4px; }
+.coach-live-copy { width: 278px; height: 48px; margin-left: 6px; }
+.coach-live-title { width: 278px; height: 44px; font-size: 32px; }
+.coach-prob-row { width: 360px; height: 44px; margin-top: 0; }
+.prob-name { width: 270px; height: 42px; font-size: 32px; }
+.prob-pct { width: 82px; height: 42px; font-size: 30px; margin-left: 0; }
+.coach-advice-box { width: 360px; height: 64px; margin-top: 4px; padding: 0; flex-direction: column; }
+.coach-advice { width: 344px; height: 32px; margin-left: 0; margin-top: 0; font-size: 30px; }
+.coach-selected-row { width: 360px; height: 40px; margin-top: 0; }
+.coach-selected-name { width: 360px; height: 38px; font-size: 30px; }
+.coach-scene-grid { width: 360px; height: 164px; margin-top: 4px; }
+.coach-scene-btn { width: 114px; height: 76px; margin: 3px; font-size: 32px; }
+.timeline-summary { width: 360px; height: 60px; padding: 0; }
+.timeline-summary-orb { width: 138px; height: 56px; }
+.timeline-summary-value { width: 98px; height: 48px; margin-left: 0; font-size: 40px; }
+.timeline-summary-label { width: 36px; height: 38px; font-size: 30px; }
+.timeline-summary-active { width: 218px; height: 48px; font-size: 40px; }
+.timeline-list { width: 360px; height: 194px; }
+.segment-scroll { width: 360px; height: 194px; flex-direction: column; }
+.timeline-empty { width: 360px; height: 180px; padding-top: 64px; font-size: 32px; }
+.seg-row { width: 360px; height: 76px; margin: 0; padding: 3px; }
+.seg-dot { width: 8px; height: 56px; margin-left: 0; margin-right: 4px; }
+.seg-main { width: 338px; height: 64px; margin-left: 4px; }
+.seg-title-row { width: 338px; height: 46px; }
+.seg-name { width: 202px; height: 44px; font-size: 32px; }
+.seg-duration { width: 132px; height: 44px; font-size: 30px; }
+.seg-bar-row { width: 338px; height: 10px; }
+.core-review { width: 360px; height: 256px; }
+.core-summary-stat-row { width: 360px; height: 72px; }
+.summary-stat { width: 116px; height: 72px; }
+.stat-value { height: 42px; font-size: 34px; }
+.stat-label { height: 32px; font-size: 26px; }
+.review-title-row { width: 360px; height: 34px; margin-top: 0; }
+.review-note { width: 360px; height: 34px; font-size: 28px; }
+.core-ai-review { width: 360px; height: 70px; margin-top: 2px; padding: 0; flex-direction: column; }
+.review-copy-item { width: 360px; height: 38px; }
+.core-ai-review-text { width: 356px; height: 38px; margin-top: 0; font-size: 30px; }
+.core-ai-review-btn { width: 360px; height: 72px; margin-top: 4px; font-size: 32px; }
+.review-tabs { width: 384px; height: 72px; margin-top: 8px; }
+.review-tab-wide { width: 124px; height: 72px; font-size: 34px; }
+.core-sync-card, .core-fold-card { width: 384px; height: 280px; margin-top: 8px; padding: 12px; }
+.precise-stamp, .precise-wait { width: 360px; height: 40px; margin-top: 0; font-size: 32px; }
+.core-export-metrics { width: 360px; height: 88px; margin-top: 2px; }
+.export-metric { width: 116px; height: 88px; }
+.export-value { width: 116px; height: 48px; font-size: 38px; }
+.export-label { height: 36px; font-size: 30px; }
+.core-sync-buttons { width: 360px; height: 76px; margin-top: 8px; }
+.mini-btn { width: 174px; height: 76px; font-size: 34px; }
+.empty { width: 360px; height: 76px; font-size: 34px; }
+.history-empty { margin-top: 72px; }
+.history-scroll { width: 360px; height: 172px; flex-direction: column; }
+.history-row { width: 360px; height: 84px; }
+.history-main { width: 260px; height: 80px; margin-left: 0; }
+.history-title-row { width: 260px; height: 80px; }
+.history-title { width: 260px; height: 42px; font-size: 32px; }
+.history-time { width: 260px; height: 36px; font-size: 28px; }
+.history-side { width: 94px; height: 80px; margin-right: 0; }
+.history-score { width: 94px; height: 40px; font-size: 30px; }
+.fold-action-btn { width: 360px; height: 76px; margin-top: 8px; font-size: 32px; }
+.more-tabs { width: 360px; height: 72px; margin-bottom: 4px; }
+.more-tab { width: 174px; height: 72px; font-size: 32px; }
+.diagnostic-scroll { width: 360px; height: 96px; flex-direction: column; }
+.diag-row { width: 360px; height: 44px; }
+.diag-name { width: 232px; height: 40px; font-size: 30px; }
+.diag-status { width: 100px; height: 40px; font-size: 28px; margin-right: 0; }
+.core-privacy-grid { width: 360px; height: 96px; }
+.core-privacy-item { width: 116px; height: 96px; }
+.privacy-icon { width: 50px; height: 46px; font-size: 32px; }
+.privacy-title { width: 114px; height: 38px; margin-top: 2px; font-size: 30px; }
+</style>

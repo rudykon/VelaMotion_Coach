@@ -1,0 +1,62 @@
+{
+  "package": "com.velamotion.coach",
+  "name": "VelaMotion Coach",
+  "versionName": "1.0.0",
+  "versionCode": 1,
+  "minPlatformVersion": 1000,
+  "icon": "/common/logo.png",
+  "deviceTypeList": [
+    "watch"
+  ],
+  "features": [
+    {
+      "name": "service.health"
+    },
+    {
+      "name": "system.storage"
+    },
+    {
+      "name": "system.vibrator"
+    },
+    {
+      "name": "system.brightness"
+    },
+    {
+      "name": "system.velaclaw"
+    },
+    {
+      "name": "system.sensor"
+    },
+    {
+      "name": "system.device"
+    },
+    {
+      "name": "system.battery"
+    },
+    {
+      "name": "system.interconnect"
+    }
+  ],
+  "permissions": [
+    {
+      "name": "hapjs.permission.HEALTH"
+    }
+  ],
+  "config": {
+    "logLevel": "log",
+    "designWidth": 480,
+    "background": {
+      "features": [
+        "service.health"
+      ]
+    }
+  },
+  "router": {
+    "entry": "pages/index",
+    "pages": {
+      "pages/index": {
+        "component": "index"
+      }
+    }
+  }
+}

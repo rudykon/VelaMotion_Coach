@@ -1,0 +1,32 @@
+{
+  "name": "velamotion-coach",
+  "version": "1.0.0",
+  "description": "openvela watch quick app for on-device IMU activity segmentation and AI coaching demo.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "aiot start --watch --openVNC",
+    "build": "aiot build",
+    "release": "aiot release",
+    "watch": "aiot start --watch",
+    "test:motion": "node --no-warnings scripts/smoke_motion_engine.mjs",
+    "test:core": "node --no-warnings scripts/test_core_modules.mjs",
+    "test:gesture": "node --no-warnings scripts/test_touch_gesture.mjs",
+    "test:ui-performance": "node --no-warnings scripts/test_live_patch.mjs",
+    "mock:official": "node --no-warnings scripts/inject_official_sensor_mock.js",
+    "mock:official:dry": "MOCK_DRY_RUN=1 node --no-warnings scripts/inject_official_sensor_mock.js",
+    "demo:capture": "node --no-warnings scripts/final_demo_capture.js",
+    "demo:capture:fast": "DEMO_WAIT_SCALE=0.35 node --no-warnings scripts/final_demo_capture.js",
+    "model:inventory": "node --no-warnings scripts/model_migration_inventory.js",
+    "submit:check": "node --no-warnings scripts/check_submission_ready.js",
+    "submit:prepare": "node --no-warnings scripts/prepare_submission_package.js"
+  },
+  "devDependencies": {
+    "@aiot-toolkit/velasim": "^0.1.26",
+    "aiot-toolkit": "2.0.5",
+    "@aiot-toolkit/jsc": "^1.0.8",
+    "ux-types": "^1.7.0"
+  },
+  "license": "Apache-2.0"
+}
